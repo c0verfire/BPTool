@@ -828,6 +828,72 @@ def BP01017(ip, apikey):
 			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
+#-------Rule Definitions------
+#----Rule 04000 - 07999: Firewall Specific Rules
+def BP04000(ip, apikey):
+	bpnum = "BP04000"
+	title = " Firewall Should Use Descriptive Rule Names"
+	priority = "Low"
+	# Query for Management Profile
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/vsys/entry"):
+		vsys = entryElement.attrib['name']
+		for secruleElement in entryElement.findall('rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			if re.match("rule\d{1,2}", rule):
+				status = "Fail"
+				mesg = "%s in %s is using a default rule name" % (rule, vsys)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+#-------Rule Definitions------
+#----Rule 08000 - 11999: Panorama Specific Rules
+def BP08000(ip, apikey):
+	bpnum = "BP08000"
+	title = " Panorama Use Descriptive Rule Names"
+	priority = "Low"
+	# Query for Device Group Rules
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/device-group"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	# Query for Shared Rules
+	xpath2 = "/config/shared"
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/device-group/entry"):
+		devgrp = entryElement.attrib['name']
+		for secruleElement in entryElement.findall('pre-rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			if re.match("pre-rule\d{1,2}", rule):
+				status = "Fail"
+				mesg = "Pre-Rule %s in %s is using a default rule name" % (rule, devgrp)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+		for secruleElement in entryElement.findall('post-rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			if re.match("post-rule\d", rule):
+				status = "Fail"
+				mesg = "Post-Rule %s in %s is using a default rule name" % (rule, devgrp)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	responseElement2 = ET.fromstring(rrule2.text)
+	for entryElement in responseElement2.findall("./result/shared/pre-rulebase/security/rules/entry"):
+		rule = entryElement.attrib['name']
+		if re.match("shared-pre-rule\d", rule):
+			status = "Fail"
+			mesg = "Shared Pre-Rule %s is using a default rule name" % rule
+			ws.append([ip, bpnum, title, priority, status, mesg])
+	for entryElement in responseElement2.findall("./result/shared/post-rulebase/security/rules/entry"):
+		rule = entryElement.attrib['name']
+		if re.match("shared-post-rule\d", rule):
+			status = "Fail"
+			mesg = "Shared Post-Rule %s is using a default rule name" % rule
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
 def BPPanorama(ip, apikey):
 	BP01000(ip, apikey)
 	BP01001(ip, apikey)
@@ -842,6 +908,7 @@ def BPPanorama(ip, apikey):
 	BP01011(ip, apikey)
 	BP01015(ip, apikey)
 	BP01017(ip, apikey)
+	BP08000(ip, apikey)
 
 def BPUmgPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -861,6 +928,7 @@ def BPUmgPan(ip, apikey):
 	BP01014(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
+	BP04000(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -880,6 +948,7 @@ def BPMGPan(ip, apikey):
 	BP01014(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
+	BP04000(ip, apikey)
 
 
 
