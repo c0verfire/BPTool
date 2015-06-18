@@ -6,8 +6,8 @@ import os
 import csv
 import requests
 import re
+import time
 from openpyxl import Workbook
-from datetime import datetime
 
 script, fwinfo = argv
 
@@ -20,7 +20,7 @@ ws['D1'] = 'Priority'
 ws['E1'] = 'Status'
 ws['F1'] = 'Description'
 
-datetime = datetime.now()
+datetime = time.strftime("%Y-%m-%d %H%M")
 
 
 #-------Rule Definitions------
@@ -924,6 +924,6 @@ if proceed == "yes" or proceed == "y":
 elif proceed == "no" or proceed == "n": 
 	quit()				
 			
-wb.save('bp-results' + str(datetime) + '.xlsx') 
+wb.save('bp-results ' + str(datetime) + '.xlsx') 
 
 
