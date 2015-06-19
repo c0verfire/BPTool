@@ -981,7 +981,7 @@ def	BPTool():
 print "##############################################################"
 print "#### Palo Alto Best Practices Analysis Tool               ####"
 print "#### INTERNAL ONLY DO NOT DISTRIBUTE                      ####"
-print "#### Version: 0.3 ALPHA (Amsterdam)                       ####"
+print "#### Version: 0.4a ALPHA (Belfast)                       ####"
 print "####                                                      ####"
 print "#### Written By: Jessica Ferguson                         ####"
 print "#### jferguson@paloaltonetworks.com                       ####"
