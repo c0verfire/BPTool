@@ -177,14 +177,18 @@ def BP01005(ip, apikey):
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	rresp = ET.fromstring(rrule.content)
 	result = rresp.find(rxpath)
-	if (result is None):
+	if result is None:
 		status = "Fail"
 		mesg = "Server Verification Should be Enabled"
 		ws.append([ip, bpnum, title, priority, status, mesg])
-	if result.text == "yes":
+	elif result.text == "yes":
 		status = "Pass"
 		mesg = "Server Verification is Enabled"	
 		ws.append([ip, bpnum, title, priority, status, mesg])	
+	elif result.text == "no":
+		status = "Fail"
+		mesg = "Server Verification Should be Enabled"
+		ws.append([ip, bpnum, title, priority, status, mesg])
 	
 	
 def BP01006(ip, apikey):
