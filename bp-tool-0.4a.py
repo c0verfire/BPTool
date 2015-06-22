@@ -29,6 +29,7 @@ def BP01000(ip, apikey):
 	bpnum = "BP01000"
 	title = "Configure Hostname on System"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/hostname"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system/hostname"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -54,6 +55,7 @@ def BP01001(ip, apikey):
 	bpnum = "BP01001"
 	title = "Configure Domain Name on System"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/domain"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system/domain"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -75,6 +77,7 @@ def BP01002(ip, apikey):
 	bpnum = "BP01002"
 	title = "Replace default administrative super-user account by creating a new superuser account and then deleting the admin account."
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/mgt-config/users"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -102,6 +105,7 @@ def BP01003(ip, apikey):
 	bpnum = "BP01003"
 	title = "Configure administrative access lockouts and timeouts in the authentication settings portion of the device setup tab. Configure administrative timeout to 10 minutes; apply these settings to administrator accounts."
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/idle-timeout"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting/management/idle-timeout"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -124,6 +128,7 @@ def BP01004(ip, apikey):
 	bpnum = "BP01004"
 	title = "Configure Local User Authentication Profile"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Authentication Profile
 	xpath = "/config/shared/authentication-profile"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -171,6 +176,7 @@ def BP01005(ip, apikey):
 	bpnum = "BP01005"
 	title = "Configure the firewall to verify the identity of the Palo Alto update server on the device setup page."
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/system/server-verification"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -195,6 +201,7 @@ def BP01006(ip, apikey):
 	bpnum = "BP01006"
 	title = "Configure login banner."
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/system/login-banner"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -215,6 +222,7 @@ def BP01007(ip, apikey):
 	bpnum = "BP01007"
 	title = "Configure Geo-Location Longitude and Latitude"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/system/geo-location"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -235,6 +243,7 @@ def BP01008(ip, apikey):
 	bpnum = "BP01008"
 	title = "Configure the firewall to use redundant DNS Servers"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -260,6 +269,7 @@ def BP01009(ip, apikey):
 	bpnum = "BP01009"
 	title = "Configure the firewall to use redundant NTP Servers"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -301,6 +311,7 @@ def BP01010(ip, apikey):
 	bpnum = "BP01010"
 	title = "Limit management interface traffic to ping and secure protocols only"
 	priority = "High"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -444,6 +455,7 @@ def BP01011(ip, apikey):
 	bpnum = "BP01011"
 	title = "Limit permitted IP Addresses to those necessary for device management"
 	priority = "High"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -470,6 +482,7 @@ def BP01012(ip, apikey):
 	bpnum = "BP01012"
 	title = "Enable Log on High DP Load"
 	priority = "High"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -494,6 +507,7 @@ def BP01013(ip, apikey):
 	bpnum = "BP01013"
 	title = "Secure Production Interface Management Profiles"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Interface Management Profile
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/network/profiles/interface-management-profile"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -557,6 +571,7 @@ def BP01014(ip, apikey):
 	bpnum = "BP01014"
 	title = "Restrict Production Interface Management Profiles Source Addresses"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Management Profile
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/network/profiles/interface-management-profile"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -585,6 +600,7 @@ def BP01015(ip, apikey):
 	bpnum = "BP01015"
 	title = "Configure minimum password complexity profile "
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Management Profile
 	xpath = "/config/mgt-config/password-complexity"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -794,6 +810,7 @@ def BP01016(ip, apikey):
 	bpnum = "BP01016"
 	title = "Firewall eTAC Recommended Versions of Code"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Management Profile
 	xpath = "<show><system><info></info></system></show>"
 	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
@@ -815,6 +832,7 @@ def BP01017(ip, apikey):
 	bpnum = "BP01017"
 	title = "Panorama eTAC Recommended Versions of Code"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Management Profile
 	xpath = "<show><system><info></info></system></show>"
 	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
@@ -838,6 +856,7 @@ def BP04000(ip, apikey):
 	bpnum = "BP04000"
 	title = " Firewall Should Use Descriptive Rule Names"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Management Profile
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -858,6 +877,7 @@ def BP08000(ip, apikey):
 	bpnum = "BP08000"
 	title = " Panorama Use Descriptive Rule Names"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Device Group Rules
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/device-group"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -967,7 +987,7 @@ def	BPTool():
 			rresp = ET.fromstring(rkey.content)
 			apikeysearch = rresp.find('result/key')
 			apikey = apikeysearch.text
-
+			print "Generating API Key for %s" % ip
 					
 			#lookup device type and invoke aggregating function
 			devicetype = row["device_type"]
@@ -977,11 +997,13 @@ def	BPTool():
 				BPMGPan(ip, apikey)
 			elif devicetype == "Unmanaged-PAN":
 				BPUmgPan(ip, apikey)
+			else:
+				print "Device Type Not Set. Should be Panorama, Managed-PAN, or Unmanaged-PAN"
 
 print "##############################################################"
 print "#### Palo Alto Best Practices Analysis Tool               ####"
 print "#### INTERNAL ONLY DO NOT DISTRIBUTE                      ####"
-print "#### Version: 0.4a ALPHA (Belfast)                       ####"
+print "#### Version: 0.4a ALPHA (Belfast)                        ####"
 print "####                                                      ####"
 print "#### Written By: Jessica Ferguson                         ####"
 print "#### jferguson@paloaltonetworks.com                       ####"
@@ -990,6 +1012,7 @@ print "##############################################################"
 print ""
 print "This software should be considered alpha code and should not be used in a production environment"
 print "Here there be Dragons!!! Proceed at your Own Risk"
+print ""
 
 proceed = raw_input("Enter (y)es or (n)o: ") 
 if proceed == "yes" or proceed == "y": 
@@ -998,3 +1021,8 @@ elif proceed == "no" or proceed == "n":
 	quit()				
 			
 wb.save('bp-results ' + str(datetime) + '.xlsx') 
+print ""
+print "##############################################################"
+print "Thank you for using the Palo Alto Best Practices Analysis Tool." 
+print "Your output file should be in the directory in which you launched the tool."
+print "May the force be with you."
