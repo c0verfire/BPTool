@@ -21,6 +21,7 @@ ws['E1'] = 'Status'
 ws['F1'] = 'Description'
 
 datetime = time.strftime("%Y-%m-%d %H%M")
+requests.packages.urllib3.disable_warnings()
 
 
 #-------Rule Definitions------
@@ -1000,6 +1001,7 @@ def	BPTool():
 			else:
 				print "Device Type Not Set. Should be Panorama, Managed-PAN, or Unmanaged-PAN"
 
+print ""
 print "##############################################################"
 print "#### Palo Alto Best Practices Analysis Tool               ####"
 print "#### INTERNAL ONLY DO NOT DISTRIBUTE                      ####"
