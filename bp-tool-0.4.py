@@ -7,6 +7,7 @@ import csv
 import requests
 import re
 from openpyxl import Workbook
+import time
 import datetime
 from datetime import date
 
@@ -52,8 +53,9 @@ def BP01000(ip, apikey):
 	else:
 		status = "Pass"
 		mesg = "Hostnames are Defined"
-		
 	ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
 	
 def BP01001(ip, apikey):
 	bpnum = "BP01001"
@@ -76,6 +78,8 @@ def BP01001(ip, apikey):
 		print "FAIL!!!"
 		
 	ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
 	
 def BP01002(ip, apikey):
 	bpnum = "BP01002"
@@ -104,7 +108,9 @@ def BP01002(ip, apikey):
 				status = "Informational"
 				mesg = username + ' is superreader'
 				ws.append([ip, bpnum, title, priority, status, mesg])
-
+	
+	time.sleep(sleeptime)
+	
 def BP01003(ip, apikey):
 	bpnum = "BP01003"
 	title = "Configure administrative access lockouts and timeouts in the authentication settings portion of the device setup tab. Configure administrative timeout to 10 minutes; apply these settings to administrator accounts."
@@ -125,9 +131,10 @@ def BP01003(ip, apikey):
 	elif result.text == "10":
 		status = "Pass"
 		mesg = "Idle Timeout is set to 10 minutes"
-		
 	ws.append([ip, bpnum, title, priority, status, mesg])
-
+	
+	time.sleep(sleeptime)
+	
 def BP01004(ip, apikey):
 	bpnum = "BP01004"
 	title = "Configure Local User Authentication Profile"
@@ -175,7 +182,8 @@ def BP01004(ip, apikey):
 										mesg = username + ' is using Authentication Group ' + authprofElement
 										ws.append([ip, bpnum, title, priority, status, mesg])
 									
-
+	time.sleep(sleeptime)
+	
 def BP01005(ip, apikey):
 	bpnum = "BP01005"
 	title = "Configure the firewall to verify the identity of the Palo Alto update server on the device setup page."
@@ -200,6 +208,7 @@ def BP01005(ip, apikey):
 		mesg = "Server Verification Should be Enabled"
 		ws.append([ip, bpnum, title, priority, status, mesg])
 	
+	time.sleep(sleeptime)
 	
 def BP01006(ip, apikey):
 	bpnum = "BP01006"
@@ -220,6 +229,8 @@ def BP01006(ip, apikey):
 		mesg = "Login Banner Is Configured"	
 		
 	ws.append([ip, bpnum, title, priority, status, mesg])	
+	
+	time.sleep(sleeptime)
 
 
 def BP01007(ip, apikey):
@@ -240,7 +251,9 @@ def BP01007(ip, apikey):
 		status = "Pass"
 		mesg = "Geolocation Coordinates are configured"	
 		
-	ws.append([ip, bpnum, title, priority, status, mesg])	
+	ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)	
 	
 
 def BP01008(ip, apikey):
@@ -268,6 +281,8 @@ def BP01008(ip, apikey):
 			status = "Pass"
 			mesg = "Primary and Secondary DNS Servers Configured. Primary Server IP: %s Secondary Server IP: %s" % (PrimarySrvElement.text, SecondarySrvElement.text)
 			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
 			
 def BP01009(ip, apikey):
 	bpnum = "BP01009"
@@ -310,6 +325,8 @@ def BP01009(ip, apikey):
 				status = "Pass"
 				mesg = "Authencation type sha1 found on NTP Server %s" % SecondarySrvElement.text
 				ws.append([ip, bpnum, title, priority, status, mesg])	
+				
+	time.sleep(sleeptime)
 				
 def BP01010(ip, apikey):
 	bpnum = "BP01010"
@@ -454,6 +471,8 @@ def BP01010(ip, apikey):
 			status = "Informational"
 			mesg = "User UDP Log Polling is Enabled"
 			ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
 
 def BP01011(ip, apikey):
 	bpnum = "BP01011"
@@ -482,6 +501,8 @@ def BP01011(ip, apikey):
 			mesg = "Valid Management ACL has been defined for IP %s." % mgmtip
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
+	time.sleep(sleeptime)
+			
 def BP01012(ip, apikey):
 	bpnum = "BP01012"
 	title = "Enable Log on High DP Load"
@@ -506,6 +527,8 @@ def BP01012(ip, apikey):
 			status = "Fail"
 			mesg = "High DP Logging Not Enabled."
 			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
 			
 def BP01013(ip, apikey):
 	bpnum = "BP01013"
@@ -570,6 +593,8 @@ def BP01013(ip, apikey):
 						status = "Fail"
 						mesg = interface + ' is using unsecure Management Profile ' + mgmtprofElement
 						ws.append([ip, bpnum, title, priority, status, mesg])
+						
+	time.sleep(sleeptime)
 
 def BP01014(ip, apikey):
 	bpnum = "BP01014"
@@ -599,6 +624,8 @@ def BP01014(ip, apikey):
 				status = "Pass"
 				mesg = "Valid Management ACL has been defined for IP %s. in Profile %s" % (mgmtip, profile)
 				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
 
 def BP01015(ip, apikey):
 	bpnum = "BP01015"
@@ -809,6 +836,8 @@ def BP01015(ip, apikey):
 				status = "Fail"
 				mesg = "Maximum of 7 Day Post Expiration Grace Period is not configured"
 				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
 
 def BP01016(ip, apikey):
 	bpnum = "BP01016"
@@ -936,7 +965,102 @@ def BP01016(ip, apikey):
 						status = "Pass"
 						mesg = "WildFire Signature Version " + wfversion.text + " is up to date"
 						ws.append([ip, bpnum, title, priority, status, mesg])
-			
+						
+	time.sleep(sleeptime)
+
+def BP01017(ip, apikey):
+	bpnum = "BP01017"
+	title = "Ensure that Dynamic Update Times are Configured Properly"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for License Info
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	responseElement = ET.fromstring(rrule.text)
+		
+	for entryElement in responseElement.findall("./result/system/update-schedule"):
+		thrupdate = entryElement.find('threats')
+		avupdate = entryElement.find('anti-virus')
+		wfupdate = entryElement.find('wildfire')
+
+		
+		if not thrupdate is None:
+			for recElement in entryElement.findall('threats/recurring'):
+				weekly = recElement.find('weekly')
+				daily = recElement.find('daily')
+				if weekly:
+					status = "Fail"
+					mesg = "Threat and Application Updates are configured to install weekly on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif daily:
+					for dayElement in recElement.findall('daily'):
+						timeat = dayElement.find('at')
+						action = dayElement.find('action')
+						if action.text == 'download-only':
+							status = "Fail"
+							mesg = "Threat and Application Updates are configured to download only"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+						if action.text == 'download-and-install':
+							status = "Pass"
+							mesg = "Threat and Application Updates are configured to download and install daily"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		if not avupdate is None:
+			for recElement in entryElement.findall('anti-virus/recurring'):
+				weekly = recElement.find('weekly')
+				daily = recElement.find('daily')
+				hourly = recElement.find('hourly')
+				if weekly:
+					status = "Fail"
+					mesg = "Anti-Virus Updates are configured to install weekly on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif daily:
+					status = "Fail"
+					mesg = "Anti-Virus Updates are configured to install daily on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif hourly:
+					for hourElement in recElement.findall('hourly'):
+						timeat = hourElement.find('at')
+						action = hourElement.find('action')
+						if action.text == 'download-only':
+							status = "Fail"
+							mesg = "Anti-Virus Updates are configured to download only"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+						if action.text == 'download-and-install':
+							status = "Pass"
+							mesg = "Anti-Virus Updates are configured to download and install hourly"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		if not wfupdate is None:
+			for recElement in entryElement.findall('wildfire/recurring'):
+				fifteenmin = recElement.find('every-15-mins')
+				thirtymin = recElement.find('every-30-mins')
+				hourly = recElement.find('every-hour')
+				if hourly:
+					status = "Fail"
+					mesg = "WildFire Updates are configured to install hourly on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif thirtymin:
+					status = "Fail"
+					mesg = "WildFire Updates are configured to install every half hour on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif fifteenmin:
+					for fifElement in recElement.findall('every-15-mins'):
+						timeat = fifElement.find('at')
+						action = fifElement.find('action')
+						if action.text == 'download-only':
+							status = "Fail"
+							mesg = "WildFire Updates are configured to download only"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+						if action.text == 'download-and-install':
+							status = "Pass"
+							mesg = "WildFire Updates are configured to download and install every fifteen minutes"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+							
+	time.sleep(sleeptime)
+
+						
 #-------Rule Definitions------
 #----Rule 04000 - 07999: Firewall Specific Rules
 def BP04000(ip, apikey):
@@ -957,6 +1081,8 @@ def BP04000(ip, apikey):
 				status = "Fail"
 				mesg = "%s in %s is using a default rule name" % (rule, vsys)
 				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
 
 def BP04001(ip, apikey):
 	bpnum = "BP04001"
@@ -979,6 +1105,8 @@ def BP04001(ip, apikey):
 			status = "Fail"
 			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
 
 
 #-------Rule Definitions------
@@ -1028,6 +1156,8 @@ def BP08000(ip, apikey):
 			mesg = "Shared Post-Rule %s is using a default rule name" % rule
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
+	time.sleep(sleeptime)
+			
 def BP08001(ip, apikey):
 	bpnum = "BP08001"
 	title = "Panorama eTAC Recommended Versions of Code"
@@ -1050,6 +1180,8 @@ def BP08001(ip, apikey):
 			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
+	time.sleep(sleeptime)
+			
 def BPPanorama(ip, apikey):
 	BP01000(ip, apikey)
 	BP01001(ip, apikey)
@@ -1064,6 +1196,7 @@ def BPPanorama(ip, apikey):
 	BP01011(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
+	BP01017(ip, apikey)
 	BP08000(ip, apikey)
 	BP08001(ip, apikey)
 
@@ -1085,6 +1218,7 @@ def BPUmgPan(ip, apikey):
 	BP01014(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
+	BP01017(ip, apikey)
 	BP04000(ip, apikey)
 	BP04001(ip, apikey)
 
@@ -1106,6 +1240,7 @@ def BPMGPan(ip, apikey):
 	BP01014(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
+	BP01017(ip, apikey)
 	BP04000(ip, apikey)
 	BP04001(ip, apikey)
 
@@ -1134,7 +1269,12 @@ def	BPTool():
 				BPUmgPan(ip, apikey)
 			else:
 				print "Device Type Not Set. Should be Panorama, Managed-PAN, or Unmanaged-PAN"
+				
 
+	
+	
+	
+	
 print ""
 print "##############################################################"
 print "#### Palo Alto Best Practices Analysis Tool               ####"
@@ -1152,11 +1292,16 @@ print ""
 
 proceed = raw_input("Enter (y)es or (n)o: ") 
 if proceed == "yes" or proceed == "y": 
-	BPTool()
+	cust = raw_input("Please enter the customer name: ")
+	sleeptime = int(raw_input("Enter a sleep time in seconds. Default is zero: ") or "0")
+	if type(sleeptime) == int:
+		BPTool()
+	else:
+		print "Sleep time must be a number"
 elif proceed == "no" or proceed == "n": 
 	quit()				
 			
-wb.save('bp-results ' + str(repdate) + '.xlsx') 
+wb.save('bp-results-' + cust + '-' + str(repdate) + '.xlsx') 
 print ""
 print "##############################################################"
 print "Thank you for using the Palo Alto Best Practices Analysis Tool." 
