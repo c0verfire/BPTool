@@ -6,8 +6,9 @@ import os
 import csv
 import requests
 import re
-import time
 from openpyxl import Workbook
+import datetime
+from datetime import date
 
 script, fwinfo = argv
 
@@ -20,7 +21,9 @@ ws['D1'] = 'Priority'
 ws['E1'] = 'Status'
 ws['F1'] = 'Description'
 
-datetime = time.strftime("%Y-%m-%d %H%M")
+now = datetime.datetime.now()
+curdate = now.strftime("%Y-%m-%d")
+repdate = now.strftime("%Y-%m-%d %H%M")
 requests.packages.urllib3.disable_warnings()
 
 
@@ -809,6 +812,154 @@ def BP01015(ip, apikey):
 
 def BP01016(ip, apikey):
 	bpnum = "BP01016"
+	title = "Ensure that Firewall Dynamic Updates are Processing"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for License Info
+	xpath = "<request><license><info></info></license></request>"
+	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	responseElement = ET.fromstring(rrule.text)
+	# Query for System Info
+	xpath2 = "<show><system><info></info></system></show>"
+	rulequery2 = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+	responseElement2 = ET.fromstring(rrule2.text)
+	
+	for appElement in responseElement2.findall("./result/system"):
+		appversion = appElement.find('app-version')
+		apprelease = appElement.find('app-release-date')
+		if apprelease.text =="unknown":
+			status = "Fail"
+			mesg = "Application Signature has never been updated"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			appdate = apprelease.text.split(' ')
+			appdate = appdate[0].split('/')
+			appdate = '-'.join(appdate)
+			appdate = datetime.datetime.strptime(appdate , "%Y-%m-%d")
+			testdate = datetime.datetime.strptime(curdate , "%Y-%m-%d")
+			appdiff = (testdate - appdate).days
+			if appdiff > 1:
+				status = "Fail"
+				mesg = "Application Signature Version " + appversion.text + " has not been updated in %s days" % appdiff
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			else:
+				status = "Pass"
+				mesg = "Application Signature Version " + appversion.text + " is up to date"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	for entryElement in responseElement.findall("./result/licenses/entry"):
+		licfeature = entryElement.find('feature')
+		licexpired = entryElement.find('expired')
+		activelic = []
+		expiredlic = []
+		if licexpired.text == "no":
+			activelic.append(licfeature.text)
+			for a in activelic:
+				status = "Informational"
+				mesg = a + " is licensed on " + ip
+				ws.append([ip, bpnum, title, priority, status, mesg])
+		if licexpired.text == "yes":
+			expiredlic.append(licfeature.text)
+			for x in expiredlic:
+				status = "Informational"
+				mesg = x + " license is expired on " + ip
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+		for verElement in responseElement2.findall("./result/system"):
+			avversion = verElement.find('av-version')
+			avrelease = verElement.find('av-release-date')
+			thrversion = verElement.find('threat-version')
+			thrrelease = verElement.find('threat-release-date')
+			wfversion = verElement.find('wildfire-version')
+			wfrelease = verElement.find('wildfire-release-date')
+			urlversion = verElement.find('url-filtering-version')
+			if "Threat Prevention" in activelic:
+				if avrelease.text =="unknown":
+					status = "Fail"
+					mesg = "Anti-Virus Signature has never been updated"
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				else:
+					avdate = avrelease.text.split(' ')
+					avdate = avdate[0].split('/')
+					avdate = '-'.join(avdate)
+					avdate = datetime.datetime.strptime(avdate , "%Y-%m-%d")
+					testdate = datetime.datetime.strptime(curdate , "%Y-%m-%d")
+					avdiff = (testdate - avdate).days
+					if avdiff > 0:
+						status = "Fail"
+						mesg = "Anti-Virus Signature Version " + avversion.text + " has not been updated in %s days" % avdiff
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					else:
+						status = "Pass"
+						mesg = "Anti-Virus Signature Version " + avversion.text + " is up to date"
+						ws.append([ip, bpnum, title, priority, status, mesg])
+				
+				if thrrelease.text =="unknown":
+					status = "Fail"
+					mesg = "Threat Signature has never been updated"
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				else:
+					thrdate = thrrelease.text.split(' ')
+					thrdate = thrdate[0].split('/')
+					thrdate = '-'.join(thrdate)
+					thrdate = datetime.datetime.strptime(thrdate , "%Y-%m-%d")
+					testdate = datetime.datetime.strptime(curdate , "%Y-%m-%d")
+					thrdiff = (testdate - thrdate).days
+					if thrdiff > 1:
+						status = "Fail"
+						mesg = "Threat Signature Version " + thrversion.text + " has not been updated in %s days" % thrdiff
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					else:
+						status = "Pass"
+						mesg = "Threat Signature Version " + thrversion.text + " is up to date"
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					
+			if "WildFire License" in activelic:
+				if wfrelease.text =="unknown":
+					status = "Fail"
+					mesg = "WildFire Signature has never been updated"
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				else:
+					wfdate = wfrelease.text.split(' ')
+					wfdate = wfdate[0].split('/')
+					wfdate = '-'.join(wfdate)
+					wfdate = datetime.datetime.strptime(wfdate , "%Y-%m-%d")
+					testdate = datetime.datetime.strptime(curdate , "%Y-%m-%d")
+					wfdiff = (testdate - wfdate).days
+					if wfdiff > 0:
+						status = "Fail"
+						mesg = "WildFire Signature Version " + wfversion.text + " has not been updated in %s days" % wfdiff
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					else:
+						status = "Pass"
+						mesg = "WildFire Signature Version " + wfversion.text + " is up to date"
+						ws.append([ip, bpnum, title, priority, status, mesg])
+			
+#-------Rule Definitions------
+#----Rule 04000 - 07999: Firewall Specific Rules
+def BP04000(ip, apikey):
+	bpnum = "BP04000"
+	title = "Firewall Should Use Descriptive Rule Names"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Management Profile
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/vsys/entry"):
+		vsys = entryElement.attrib['name']
+		for secruleElement in entryElement.findall('rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			if re.match("rule\d{1,2}", rule):
+				status = "Fail"
+				mesg = "%s in %s is using a default rule name" % (rule, vsys)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+def BP04001(ip, apikey):
+	bpnum = "BP04001"
 	title = "Firewall eTAC Recommended Versions of Code"
 	priority = "Low"
 	print "Running Rule %s - %s" % (bpnum, title)
@@ -829,54 +980,12 @@ def BP01016(ip, apikey):
 			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
 
-def BP01017(ip, apikey):
-	bpnum = "BP01017"
-	title = "Panorama eTAC Recommended Versions of Code"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Management Profile
-	xpath = "<show><system><info></info></system></show>"
-	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall("./result/system"):
-		version = entryElement.find('sw-version')
-		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.2" or version.text == "6.1.3" or version.text == "6.1.4":
-			status = "Pass"
-			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		else:
-			status = "Fail"
-			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
-			ws.append([ip, bpnum, title, priority, status, mesg])
-			
-#-------Rule Definitions------
-#----Rule 04000 - 07999: Firewall Specific Rules
-def BP04000(ip, apikey):
-	bpnum = "BP04000"
-	title = " Firewall Should Use Descriptive Rule Names"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Management Profile
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall("./result/vsys/entry"):
-		vsys = entryElement.attrib['name']
-		for secruleElement in entryElement.findall('rulebase/security/rules/entry'):
-			rule = secruleElement.attrib['name']
-			if re.match("rule\d{1,2}", rule):
-				status = "Fail"
-				mesg = "%s in %s is using a default rule name" % (rule, vsys)
-				ws.append([ip, bpnum, title, priority, status, mesg])
 
 #-------Rule Definitions------
 #----Rule 08000 - 11999: Panorama Specific Rules
 def BP08000(ip, apikey):
 	bpnum = "BP08000"
-	title = " Panorama Use Descriptive Rule Names"
+	title = "Panorama Use Descriptive Rule Names"
 	priority = "Low"
 	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Device Group Rules
@@ -919,6 +1028,28 @@ def BP08000(ip, apikey):
 			mesg = "Shared Post-Rule %s is using a default rule name" % rule
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
+def BP08001(ip, apikey):
+	bpnum = "BP08001"
+	title = "Panorama eTAC Recommended Versions of Code"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Management Profile
+	xpath = "<show><system><info></info></system></show>"
+	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/system"):
+		version = entryElement.find('sw-version')
+		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.2" or version.text == "6.1.3" or version.text == "6.1.4":
+			status = "Pass"
+			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
 def BPPanorama(ip, apikey):
 	BP01000(ip, apikey)
 	BP01001(ip, apikey)
@@ -932,8 +1063,9 @@ def BPPanorama(ip, apikey):
 	BP01010(ip, apikey)
 	BP01011(ip, apikey)
 	BP01015(ip, apikey)
-	BP01017(ip, apikey)
+	BP01016(ip, apikey)
 	BP08000(ip, apikey)
+	BP08001(ip, apikey)
 
 def BPUmgPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -954,6 +1086,7 @@ def BPUmgPan(ip, apikey):
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
 	BP04000(ip, apikey)
+	BP04001(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -974,6 +1107,7 @@ def BPMGPan(ip, apikey):
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
 	BP04000(ip, apikey)
+	BP04001(ip, apikey)
 
 
 
@@ -1022,7 +1156,7 @@ if proceed == "yes" or proceed == "y":
 elif proceed == "no" or proceed == "n": 
 	quit()				
 			
-wb.save('bp-results ' + str(datetime) + '.xlsx') 
+wb.save('bp-results ' + str(repdate) + '.xlsx') 
 print ""
 print "##############################################################"
 print "Thank you for using the Palo Alto Best Practices Analysis Tool." 
