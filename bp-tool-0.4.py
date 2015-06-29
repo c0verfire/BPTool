@@ -6,8 +6,10 @@ import os
 import csv
 import requests
 import re
-import time
 from openpyxl import Workbook
+import time
+import datetime
+from datetime import date
 
 script, fwinfo = argv
 
@@ -20,7 +22,10 @@ ws['D1'] = 'Priority'
 ws['E1'] = 'Status'
 ws['F1'] = 'Description'
 
-datetime = time.strftime("%Y-%m-%d %H%M")
+now = datetime.datetime.now()
+curdate = now.strftime("%Y-%m-%d")
+repdate = now.strftime("%Y-%m-%d %H%M")
+requests.packages.urllib3.disable_warnings()
 
 
 #-------Rule Definitions------
@@ -29,6 +34,7 @@ def BP01000(ip, apikey):
 	bpnum = "BP01000"
 	title = "Configure Hostname on System"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/hostname"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system/hostname"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -47,13 +53,15 @@ def BP01000(ip, apikey):
 	else:
 		status = "Pass"
 		mesg = "Hostnames are Defined"
-		
 	ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
 	
 def BP01001(ip, apikey):
 	bpnum = "BP01001"
 	title = "Configure Domain Name on System"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/domain"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system/domain"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -71,10 +79,13 @@ def BP01001(ip, apikey):
 		
 	ws.append([ip, bpnum, title, priority, status, mesg])
 	
+	time.sleep(sleeptime)
+	
 def BP01002(ip, apikey):
 	bpnum = "BP01002"
 	title = "Replace default administrative super-user account by creating a new superuser account and then deleting the admin account."
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/mgt-config/users"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -97,11 +108,14 @@ def BP01002(ip, apikey):
 				status = "Informational"
 				mesg = username + ' is superreader'
 				ws.append([ip, bpnum, title, priority, status, mesg])
-
+	
+	time.sleep(sleeptime)
+	
 def BP01003(ip, apikey):
 	bpnum = "BP01003"
 	title = "Configure administrative access lockouts and timeouts in the authentication settings portion of the device setup tab. Configure administrative timeout to 10 minutes; apply these settings to administrator accounts."
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/idle-timeout"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting/management/idle-timeout"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -117,13 +131,15 @@ def BP01003(ip, apikey):
 	elif result.text == "10":
 		status = "Pass"
 		mesg = "Idle Timeout is set to 10 minutes"
-		
 	ws.append([ip, bpnum, title, priority, status, mesg])
-
+	
+	time.sleep(sleeptime)
+	
 def BP01004(ip, apikey):
 	bpnum = "BP01004"
 	title = "Configure Local User Authentication Profile"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Authentication Profile
 	xpath = "/config/shared/authentication-profile"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -166,31 +182,39 @@ def BP01004(ip, apikey):
 										mesg = username + ' is using Authentication Group ' + authprofElement
 										ws.append([ip, bpnum, title, priority, status, mesg])
 									
-
+	time.sleep(sleeptime)
+	
 def BP01005(ip, apikey):
 	bpnum = "BP01005"
 	title = "Configure the firewall to verify the identity of the Palo Alto update server on the device setup page."
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/system/server-verification"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	rresp = ET.fromstring(rrule.content)
 	result = rresp.find(rxpath)
-	if (result is None):
+	if result is None:
 		status = "Fail"
 		mesg = "Server Verification Should be Enabled"
 		ws.append([ip, bpnum, title, priority, status, mesg])
-	if result.text == "yes":
+	elif result.text == "yes":
 		status = "Pass"
 		mesg = "Server Verification is Enabled"	
 		ws.append([ip, bpnum, title, priority, status, mesg])	
+	elif result.text == "no":
+		status = "Fail"
+		mesg = "Server Verification Should be Enabled"
+		ws.append([ip, bpnum, title, priority, status, mesg])
 	
+	time.sleep(sleeptime)
 	
 def BP01006(ip, apikey):
 	bpnum = "BP01006"
 	title = "Configure login banner."
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/system/login-banner"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -205,12 +229,15 @@ def BP01006(ip, apikey):
 		mesg = "Login Banner Is Configured"	
 		
 	ws.append([ip, bpnum, title, priority, status, mesg])	
+	
+	time.sleep(sleeptime)
 
 
 def BP01007(ip, apikey):
 	bpnum = "BP01007"
 	title = "Configure Geo-Location Longitude and Latitude"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/system/geo-location"
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -224,13 +251,16 @@ def BP01007(ip, apikey):
 		status = "Pass"
 		mesg = "Geolocation Coordinates are configured"	
 		
-	ws.append([ip, bpnum, title, priority, status, mesg])	
+	ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)	
 	
 
 def BP01008(ip, apikey):
 	bpnum = "BP01008"
 	title = "Configure the firewall to use redundant DNS Servers"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -252,10 +282,13 @@ def BP01008(ip, apikey):
 			mesg = "Primary and Secondary DNS Servers Configured. Primary Server IP: %s Secondary Server IP: %s" % (PrimarySrvElement.text, SecondarySrvElement.text)
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
+	time.sleep(sleeptime)
+			
 def BP01009(ip, apikey):
 	bpnum = "BP01009"
 	title = "Configure the firewall to use redundant NTP Servers"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -293,10 +326,13 @@ def BP01009(ip, apikey):
 				mesg = "Authencation type sha1 found on NTP Server %s" % SecondarySrvElement.text
 				ws.append([ip, bpnum, title, priority, status, mesg])	
 				
+	time.sleep(sleeptime)
+				
 def BP01010(ip, apikey):
 	bpnum = "BP01010"
 	title = "Limit management interface traffic to ping and secure protocols only"
 	priority = "High"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -435,11 +471,14 @@ def BP01010(ip, apikey):
 			status = "Informational"
 			mesg = "User UDP Log Polling is Enabled"
 			ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
 
 def BP01011(ip, apikey):
 	bpnum = "BP01011"
 	title = "Limit permitted IP Addresses to those necessary for device management"
 	priority = "High"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -462,10 +501,13 @@ def BP01011(ip, apikey):
 			mesg = "Valid Management ACL has been defined for IP %s." % mgmtip
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
+	time.sleep(sleeptime)
+			
 def BP01012(ip, apikey):
 	bpnum = "BP01012"
 	title = "Enable Log on High DP Load"
 	priority = "High"
+	print "Running Rule %s - %s" % (bpnum, title)
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
@@ -486,10 +528,13 @@ def BP01012(ip, apikey):
 			mesg = "High DP Logging Not Enabled."
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
+	time.sleep(sleeptime)
+			
 def BP01013(ip, apikey):
 	bpnum = "BP01013"
 	title = "Secure Production Interface Management Profiles"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Interface Management Profile
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/network/profiles/interface-management-profile"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -548,11 +593,14 @@ def BP01013(ip, apikey):
 						status = "Fail"
 						mesg = interface + ' is using unsecure Management Profile ' + mgmtprofElement
 						ws.append([ip, bpnum, title, priority, status, mesg])
+						
+	time.sleep(sleeptime)
 
 def BP01014(ip, apikey):
 	bpnum = "BP01014"
 	title = "Restrict Production Interface Management Profiles Source Addresses"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Management Profile
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/network/profiles/interface-management-profile"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -576,11 +624,14 @@ def BP01014(ip, apikey):
 				status = "Pass"
 				mesg = "Valid Management ACL has been defined for IP %s. in Profile %s" % (mgmtip, profile)
 				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
 
 def BP01015(ip, apikey):
 	bpnum = "BP01015"
 	title = "Configure minimum password complexity profile "
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Management Profile
 	xpath = "/config/mgt-config/password-complexity"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
@@ -785,32 +836,259 @@ def BP01015(ip, apikey):
 				status = "Fail"
 				mesg = "Maximum of 7 Day Post Expiration Grace Period is not configured"
 				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
 
 def BP01016(ip, apikey):
 	bpnum = "BP01016"
-	title = "Firewall eTAC Recommended Versions of Code"
+	title = "Ensure that Firewall Dynamic Updates are Processing"
 	priority = "Low"
-	# Query for Management Profile
-	xpath = "<show><system><info></info></system></show>"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for License Info
+	xpath = "<request><license><info></info></license></request>"
 	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	
 	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall("./result/system"):
-		version = entryElement.find('sw-version')
-		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.2" or version.text == "6.1.3" or version.text == "6.1.4":
-			status = "Pass"
-			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
+	# Query for System Info
+	xpath2 = "<show><system><info></info></system></show>"
+	rulequery2 = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+	responseElement2 = ET.fromstring(rrule2.text)
+	
+	for appElement in responseElement2.findall("./result/system"):
+		appversion = appElement.find('app-version')
+		apprelease = appElement.find('app-release-date')
+		if apprelease.text =="unknown":
+			status = "Fail"
+			mesg = "Application Signature has never been updated"
 			ws.append([ip, bpnum, title, priority, status, mesg])
 		else:
-			status = "Fail"
-			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
-			ws.append([ip, bpnum, title, priority, status, mesg])
+			appdate = apprelease.text.split(' ')
+			appdate = appdate[0].split('/')
+			appdate = '-'.join(appdate)
+			appdate = datetime.datetime.strptime(appdate , "%Y-%m-%d")
+			testdate = datetime.datetime.strptime(curdate , "%Y-%m-%d")
+			appdiff = (testdate - appdate).days
+			if appdiff > 1:
+				status = "Fail"
+				mesg = "Application Signature Version " + appversion.text + " has not been updated in %s days" % appdiff
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			else:
+				status = "Pass"
+				mesg = "Application Signature Version " + appversion.text + " is up to date"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	for entryElement in responseElement.findall("./result/licenses/entry"):
+		licfeature = entryElement.find('feature')
+		licexpired = entryElement.find('expired')
+		activelic = []
+		expiredlic = []
+		if licexpired.text == "no":
+			activelic.append(licfeature.text)
+			for a in activelic:
+				status = "Informational"
+				mesg = a + " is licensed on " + ip
+				ws.append([ip, bpnum, title, priority, status, mesg])
+		if licexpired.text == "yes":
+			expiredlic.append(licfeature.text)
+			for x in expiredlic:
+				status = "Informational"
+				mesg = x + " license is expired on " + ip
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+		for verElement in responseElement2.findall("./result/system"):
+			avversion = verElement.find('av-version')
+			avrelease = verElement.find('av-release-date')
+			thrversion = verElement.find('threat-version')
+			thrrelease = verElement.find('threat-release-date')
+			wfversion = verElement.find('wildfire-version')
+			wfrelease = verElement.find('wildfire-release-date')
+			urlversion = verElement.find('url-filtering-version')
+			if "Threat Prevention" in activelic:
+				if avrelease.text =="unknown":
+					status = "Fail"
+					mesg = "Anti-Virus Signature has never been updated"
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				else:
+					avdate = avrelease.text.split(' ')
+					avdate = avdate[0].split('/')
+					avdate = '-'.join(avdate)
+					avdate = datetime.datetime.strptime(avdate , "%Y-%m-%d")
+					testdate = datetime.datetime.strptime(curdate , "%Y-%m-%d")
+					avdiff = (testdate - avdate).days
+					if avdiff > 0:
+						status = "Fail"
+						mesg = "Anti-Virus Signature Version " + avversion.text + " has not been updated in %s days" % avdiff
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					else:
+						status = "Pass"
+						mesg = "Anti-Virus Signature Version " + avversion.text + " is up to date"
+						ws.append([ip, bpnum, title, priority, status, mesg])
+				
+				if thrrelease.text =="unknown":
+					status = "Fail"
+					mesg = "Threat Signature has never been updated"
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				else:
+					thrdate = thrrelease.text.split(' ')
+					thrdate = thrdate[0].split('/')
+					thrdate = '-'.join(thrdate)
+					thrdate = datetime.datetime.strptime(thrdate , "%Y-%m-%d")
+					testdate = datetime.datetime.strptime(curdate , "%Y-%m-%d")
+					thrdiff = (testdate - thrdate).days
+					if thrdiff > 1:
+						status = "Fail"
+						mesg = "Threat Signature Version " + thrversion.text + " has not been updated in %s days" % thrdiff
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					else:
+						status = "Pass"
+						mesg = "Threat Signature Version " + thrversion.text + " is up to date"
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					
+			if "WildFire License" in activelic:
+				if wfrelease.text =="unknown":
+					status = "Fail"
+					mesg = "WildFire Signature has never been updated"
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				else:
+					wfdate = wfrelease.text.split(' ')
+					wfdate = wfdate[0].split('/')
+					wfdate = '-'.join(wfdate)
+					wfdate = datetime.datetime.strptime(wfdate , "%Y-%m-%d")
+					testdate = datetime.datetime.strptime(curdate , "%Y-%m-%d")
+					wfdiff = (testdate - wfdate).days
+					if wfdiff > 0:
+						status = "Fail"
+						mesg = "WildFire Signature Version " + wfversion.text + " has not been updated in %s days" % wfdiff
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					else:
+						status = "Pass"
+						mesg = "WildFire Signature Version " + wfversion.text + " is up to date"
+						ws.append([ip, bpnum, title, priority, status, mesg])
+						
+	time.sleep(sleeptime)
 
 def BP01017(ip, apikey):
 	bpnum = "BP01017"
-	title = "Panorama eTAC Recommended Versions of Code"
+	title = "Ensure that Dynamic Update Times are Configured Properly"
 	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for License Info
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	responseElement = ET.fromstring(rrule.text)
+		
+	for entryElement in responseElement.findall("./result/system/update-schedule"):
+		thrupdate = entryElement.find('threats')
+		avupdate = entryElement.find('anti-virus')
+		wfupdate = entryElement.find('wildfire')
+
+		
+		if not thrupdate is None:
+			for recElement in entryElement.findall('threats/recurring'):
+				weekly = recElement.find('weekly')
+				daily = recElement.find('daily')
+				if weekly:
+					status = "Fail"
+					mesg = "Threat and Application Updates are configured to install weekly on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif daily:
+					for dayElement in recElement.findall('daily'):
+						timeat = dayElement.find('at')
+						action = dayElement.find('action')
+						if action.text == 'download-only':
+							status = "Fail"
+							mesg = "Threat and Application Updates are configured to download only"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+						if action.text == 'download-and-install':
+							status = "Pass"
+							mesg = "Threat and Application Updates are configured to download and install daily"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		if not avupdate is None:
+			for recElement in entryElement.findall('anti-virus/recurring'):
+				weekly = recElement.find('weekly')
+				daily = recElement.find('daily')
+				hourly = recElement.find('hourly')
+				if weekly:
+					status = "Fail"
+					mesg = "Anti-Virus Updates are configured to install weekly on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif daily:
+					status = "Fail"
+					mesg = "Anti-Virus Updates are configured to install daily on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif hourly:
+					for hourElement in recElement.findall('hourly'):
+						timeat = hourElement.find('at')
+						action = hourElement.find('action')
+						if action.text == 'download-only':
+							status = "Fail"
+							mesg = "Anti-Virus Updates are configured to download only"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+						if action.text == 'download-and-install':
+							status = "Pass"
+							mesg = "Anti-Virus Updates are configured to download and install hourly"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		if not wfupdate is None:
+			for recElement in entryElement.findall('wildfire/recurring'):
+				fifteenmin = recElement.find('every-15-mins')
+				thirtymin = recElement.find('every-30-mins')
+				hourly = recElement.find('every-hour')
+				if hourly:
+					status = "Fail"
+					mesg = "WildFire Updates are configured to install hourly on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif thirtymin:
+					status = "Fail"
+					mesg = "WildFire Updates are configured to install every half hour on %s" % ip
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				elif fifteenmin:
+					for fifElement in recElement.findall('every-15-mins'):
+						timeat = fifElement.find('at')
+						action = fifElement.find('action')
+						if action.text == 'download-only':
+							status = "Fail"
+							mesg = "WildFire Updates are configured to download only"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+						if action.text == 'download-and-install':
+							status = "Pass"
+							mesg = "WildFire Updates are configured to download and install every fifteen minutes"
+							ws.append([ip, bpnum, title, priority, status, mesg])
+							
+	time.sleep(sleeptime)
+
+						
+#-------Rule Definitions------
+#----Rule 04000 - 07999: Firewall Specific Rules
+def BP04000(ip, apikey):
+	bpnum = "BP04000"
+	title = "Firewall Should Use Descriptive Rule Names"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Management Profile
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/vsys/entry"):
+		vsys = entryElement.attrib['name']
+		for secruleElement in entryElement.findall('rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			if re.match("rule\d{1,2}", rule):
+				status = "Fail"
+				mesg = "%s in %s is using a default rule name" % (rule, vsys)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
+
+def BP04001(ip, apikey):
+	bpnum = "BP04001"
+	title = "Firewall eTAC Recommended Versions of Code"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Management Profile
 	xpath = "<show><system><info></info></system></show>"
 	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
@@ -828,6 +1106,82 @@ def BP01017(ip, apikey):
 			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
+	time.sleep(sleeptime)
+
+
+#-------Rule Definitions------
+#----Rule 08000 - 11999: Panorama Specific Rules
+def BP08000(ip, apikey):
+	bpnum = "BP08000"
+	title = "Panorama Use Descriptive Rule Names"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Device Group Rules
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/device-group"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	# Query for Shared Rules
+	xpath2 = "/config/shared"
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/device-group/entry"):
+		devgrp = entryElement.attrib['name']
+		for secruleElement in entryElement.findall('pre-rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			if re.match("pre-rule\d{1,2}", rule):
+				status = "Fail"
+				mesg = "Pre-Rule %s in %s is using a default rule name" % (rule, devgrp)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+		for secruleElement in entryElement.findall('post-rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			if re.match("post-rule\d", rule):
+				status = "Fail"
+				mesg = "Post-Rule %s in %s is using a default rule name" % (rule, devgrp)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	responseElement2 = ET.fromstring(rrule2.text)
+	for entryElement in responseElement2.findall("./result/shared/pre-rulebase/security/rules/entry"):
+		rule = entryElement.attrib['name']
+		if re.match("shared-pre-rule\d", rule):
+			status = "Fail"
+			mesg = "Shared Pre-Rule %s is using a default rule name" % rule
+			ws.append([ip, bpnum, title, priority, status, mesg])
+	for entryElement in responseElement2.findall("./result/shared/post-rulebase/security/rules/entry"):
+		rule = entryElement.attrib['name']
+		if re.match("shared-post-rule\d", rule):
+			status = "Fail"
+			mesg = "Shared Post-Rule %s is using a default rule name" % rule
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
+			
+def BP08001(ip, apikey):
+	bpnum = "BP08001"
+	title = "Panorama eTAC Recommended Versions of Code"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Management Profile
+	xpath = "<show><system><info></info></system></show>"
+	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/system"):
+		version = entryElement.find('sw-version')
+		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.2" or version.text == "6.1.3" or version.text == "6.1.4":
+			status = "Pass"
+			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
+			
 def BPPanorama(ip, apikey):
 	BP01000(ip, apikey)
 	BP01001(ip, apikey)
@@ -841,7 +1195,10 @@ def BPPanorama(ip, apikey):
 	BP01010(ip, apikey)
 	BP01011(ip, apikey)
 	BP01015(ip, apikey)
+	BP01016(ip, apikey)
 	BP01017(ip, apikey)
+	BP08000(ip, apikey)
+	BP08001(ip, apikey)
 
 def BPUmgPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -861,6 +1218,9 @@ def BPUmgPan(ip, apikey):
 	BP01014(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
+	BP01017(ip, apikey)
+	BP04000(ip, apikey)
+	BP04001(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -880,6 +1240,9 @@ def BPMGPan(ip, apikey):
 	BP01014(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
+	BP01017(ip, apikey)
+	BP04000(ip, apikey)
+	BP04001(ip, apikey)
 
 
 
@@ -894,7 +1257,7 @@ def	BPTool():
 			rresp = ET.fromstring(rkey.content)
 			apikeysearch = rresp.find('result/key')
 			apikey = apikeysearch.text
-
+			print "Generating API Key for %s" % ip
 					
 			#lookup device type and invoke aggregating function
 			devicetype = row["device_type"]
@@ -904,11 +1267,19 @@ def	BPTool():
 				BPMGPan(ip, apikey)
 			elif devicetype == "Unmanaged-PAN":
 				BPUmgPan(ip, apikey)
+			else:
+				print "Device Type Not Set. Should be Panorama, Managed-PAN, or Unmanaged-PAN"
+				
 
+	
+	
+	
+	
+print ""
 print "##############################################################"
 print "#### Palo Alto Best Practices Analysis Tool               ####"
 print "#### INTERNAL ONLY DO NOT DISTRIBUTE                      ####"
-print "#### Version: 0.3 ALPHA (Amsterdam)                       ####"
+print "#### Version: 0.4a ALPHA (Belfast)                        ####"
 print "####                                                      ####"
 print "#### Written By: Jessica Ferguson                         ####"
 print "#### jferguson@paloaltonetworks.com                       ####"
@@ -917,11 +1288,22 @@ print "##############################################################"
 print ""
 print "This software should be considered alpha code and should not be used in a production environment"
 print "Here there be Dragons!!! Proceed at your Own Risk"
+print ""
 
 proceed = raw_input("Enter (y)es or (n)o: ") 
 if proceed == "yes" or proceed == "y": 
-	BPTool()
+	cust = raw_input("Please enter the customer name: ")
+	sleeptime = int(raw_input("Enter a sleep time in seconds. Default is zero: ") or "0")
+	if type(sleeptime) == int:
+		BPTool()
+	else:
+		print "Sleep time must be a number"
 elif proceed == "no" or proceed == "n": 
 	quit()				
 			
-wb.save('bp-results ' + str(datetime) + '.xlsx') 
+wb.save('bp-results-' + cust + '-' + str(repdate) + '.xlsx') 
+print ""
+print "##############################################################"
+print "Thank you for using the Palo Alto Best Practices Analysis Tool." 
+print "Your output file should be in the directory in which you launched the tool."
+print "May the force be with you."
