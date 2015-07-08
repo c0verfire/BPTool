@@ -1,13 +1,12 @@
-# bp-tool-0.4 (Belfast)
+# bp-tool-0.5 (Chicago)
 
 The Palo Alto Best Practices Tool is a script that is used to assess Best Practice Configurations on Palo Alto Firewalls.
 
-New to 04!! <br>
-Rule BP01016 - Ensure that Firewall Dynamic Updates are Processing <br>
-Rule BP01017 - Ensure that Dynamic Update Times are Configured Properly <br>
+New to version 0.5!! <br>
+Rule BP04002 - Firewall Should Use RADIUS for User Authentication <br>
+Rule BP04003 - Firewall Alert on Invalid Subnet Masks <br>
+Rule BP08002 - Panorama Should Use RADIUS for User Authentication <br>
+Rule BP08003 - Panorama Alert on Invalid Subnet Masks <br>
 
-Added Customer Name - Add's Customer Name to Report. <br>
-Added Sleep Timer - Allows the Engineer to specify a Sleep Time between each query. Default is zero seconds. <br>
-Added Description as to what rule is running <br>
-Added End of File Banner <br>
-Shut Off URLLib Warnings <br>
+
+Added Option to Flag Engineer if Device Type is not Properly Specified in CSV File.  <br>
