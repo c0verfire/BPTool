@@ -1108,7 +1108,105 @@ def BP04001(ip, apikey):
 			
 	time.sleep(sleeptime)
 
+def BP04002(ip, apikey):	
+	bpnum = "BP04002"
+	title = "Firewall Should Use RADIUS for User Authentication"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Configured Authentication Profiles
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	# Query for Authentication Profile Protocol
+	xpath2 = "/config/shared"
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+		
+	responseElement = ET.fromstring(rrule.text) 
+	for entryElement in responseElement.findall("./result/system"):
+		sysauth = entryElement.find('authentication-profile')
+		sysauthprof = []
+		if sysauth is None:
+			status = "Fail"
+			mesg = "Authentication Profile is not Configured, Using local authentication."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			sysauthprof.append(sysauth.text)
+			status = "Informational"
+			mesg = "Authentication Profile %s is configured" % sysauth.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		responseElement2 = ET.fromstring(rrule2.text)
+		for authprofElement in responseElement2.findall("./result/shared/authentication-profile"):
+			for entryElement in authprofElement.findall('entry'):
+				entryName = entryElement.attrib['name']
+				if entryName in sysauthprof:
+					for methodElement in entryElement.findall('method'):
+						for methodTypeElement in methodElement:
+							methodType = methodTypeElement.tag.upper()
+							status = "Pass"
+							mesg = "Firewall Authentication Profile %s is using %s" % (entryName , methodType)
+							ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
 
+def BP04003(ip, apikey):
+	bpnum = "BP04003"
+	title = "Firewall Alert on Invalid Subnet Masks"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Device Group Objects
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	# Query for Shared Objects
+	xpath2 = "/config/shared"
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/vsys/entry'):
+		vsys = entryElement.attrib['name']
+		## Check VSYS Rulebase for Invalid Mask in rule
+		for secruleElement in entryElement.findall('rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			for srcaddrElement in secruleElement.findall('source'):
+				srcaddr = srcaddrElement.find('member')
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+					status = "Fail"
+					mesg = "Invalid Subnet Mask %s found in vsys '%s' Rule '%s'" % (srcaddr.text, vsys, rule)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+			for dstaddrElement in secruleElement.findall('destination'):
+				dstaddr = dstaddrElement.find('member')
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+					status = "Fail"
+					mesg = "Invalid Subnet Mask %s found in vsys '%s' Rule '%s'" % (dstaddr.text, vsys, rule)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		## Check VSYS Address Objects for Invalid Mask						
+		for vsysaddrElement in entryElement.findall('address/entry'):
+			address = vsysaddrElement.attrib['name']
+			ipmask = vsysaddrElement.find('ip-netmask')
+			if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
+				status = "Fail"
+				mesg = "Invalid Subnet Mask %s found in vsys '%s' Address Object '%s'" % (ipmask.text, vsys, address)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	
+	responseElement2 = ET.fromstring(rrule2.text)
+	for entryElement in responseElement2.findall('./result/shared'):
+		## Check Shared Address Objects for Invalid Mask							
+		for srdaddrElement in entryElement.findall('address/entry'):
+			address = srdaddrElement.attrib['name']
+			ipmask = srdaddrElement.find('ip-netmask')
+			if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
+				status = "Fail"
+				mesg = "Invalid Subnet Mask %s found in Shared Address Object '%s'" % (ipmask.text, address)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
+				
+				
 #-------Rule Definitions------
 #----Rule 08000 - 11999: Panorama Specific Rules
 def BP08000(ip, apikey):
@@ -1181,7 +1279,151 @@ def BP08001(ip, apikey):
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
 	time.sleep(sleeptime)
+
+def BP08002(ip, apikey):	
+	bpnum = "BP08002"
+	title = "Panorama Should Use RADIUS for User Authentication"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Configured Authentication Profiles
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	# Query for Authentication Profile Protocol
+	xpath2 = "/config/panorama"
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+		
+	responseElement = ET.fromstring(rrule.text) 
+	for entryElement in responseElement.findall("./result/system"):
+		sysauth = entryElement.find('authentication-profile')
+		sysauthprof = []
+		if sysauth is None:
+			status = "Fail"
+			mesg = "Authentication Profile is not Configured, Using local authentication."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			sysauthprof.append(sysauth.text)
+			status = "Informational"
+			mesg = "Authentication Profile %s is configured" % sysauth.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		responseElement2 = ET.fromstring(rrule2.text)
+		for authprofElement in responseElement2.findall("./result/panorama/authentication-profile"):
+			for entryElement in authprofElement.findall('entry'):
+				entryName = entryElement.attrib['name']
+				if entryName in sysauthprof:
+					for methodElement in entryElement.findall('method'):
+						for methodTypeElement in methodElement:
+							methodType = methodTypeElement.tag.upper()
+							status = "Pass"
+							mesg = "Panorama Authentication Profile %s is using %s" % (entryName , methodType)
+							ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)
+
+def BP08003(ip, apikey):
+	bpnum = "BP08003"
+	title = "Panorama Alert on Invalid Subnet Masks"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Device Group Objects
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/device-group"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	# Query for Shared Objects
+	xpath2 = "/config/shared"
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/device-group/entry'):
+		devgrp = entryElement.attrib['name']
+		## Check Device Group Pre-Rulebase for Invalid Mask in rule
+		for secruleElement in entryElement.findall('pre-rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			for srcaddrElement in secruleElement.findall('source'):
+				srcaddr = srcaddrElement.find('member')
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+					status = "Fail"
+					mesg = "Invalid Subnet Mask %s found in Device Group '%s' Rule '%s'" % (srcaddr.text, devgrp, rule)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+			for dstaddrElement in secruleElement.findall('destination'):
+				dstaddr = dstaddrElement.find('member')
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+					status = "Fail"
+					mesg = "Invalid Subnet Mask %s found in Device Group '%s' Rule '%s'" % (dstaddr.text, devgrp, rule)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		## Check Device Group Post-Rulebase for Invalid Mask in rule
+		for secruleElement in entryElement.findall('post-rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			for srcaddrElement in secruleElement.findall('source'):
+				for srcaddr in srcaddrElement.findall('member'):
+					if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+						status = "Fail"
+						mesg = "Invalid Subnet Mask %s found in Device Group '%s' Rule '%s'" % (srcaddr.text, devgrp, rule)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+			for dstaddrElement in secruleElement.findall('destination'):
+				for dstaddr in dstaddrElement.findall('member'):
+					if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+						status = "Fail"
+						mesg = "Invalid Subnet Mask %s found in Device Group '%s' Rule '%s'" % (dstaddr.text, devgrp, rule)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+
+		## Check Device Group Address Objects for Invalid Mask						
+		for devaddrElement in entryElement.findall('address/entry'):
+			address = devaddrElement.attrib['name']
+			ipmask = devaddrElement.find('ip-netmask')
+			if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
+				status = "Fail"
+				mesg = "Invalid Subnet Mask %s found in Device Group '%s' Address Object '%s'" % (ipmask.text, devgrp, address)
+				ws.append([ip, bpnum, title, priority, status, mesg])
 			
+	
+	responseElement2 = ET.fromstring(rrule2.text)
+	for entryElement in responseElement2.findall('./result/shared'):
+		## Check Shared Pre-Rulebase for Invalid Mask in rule
+		for secruleElement in entryElement.findall('pre-rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			for srcaddrElement in secruleElement.findall('source'):
+				srcaddr = srcaddrElement.find('member')
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+					status = "Fail"
+					mesg = "Invalid Subnet Mask %s found in Shared Rule '%s'" % (srcaddr.text, rule)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+			for dstaddrElement in secruleElement.findall('destination'):
+				dstaddr = dstaddrElement.find('member')
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+					status = "Fail"
+					mesg = "Invalid Subnet Mask %s found in Shared Rule '%s'" % (dstaddr.text, rule)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		## Check Shared Post-Rulebase for Invalid Mask in rule
+		for secruleElement in entryElement.findall('post-rulebase/security/rules/entry'):
+			rule = secruleElement.attrib['name']
+			for srcaddrElement in secruleElement.findall('source'):
+				for srcaddr in srcaddrElement.findall('member'):
+					if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+						status = "Fail"
+						mesg = "Invalid Subnet Mask %s found in Shared Rule '%s'" % (srcaddr.text, rule)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+			for dstaddrElement in secruleElement.findall('destination'):
+				for dstaddr in dstaddrElement.findall('member'):
+					if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+						status = "Fail"
+						mesg = "Invalid Subnet Mask %s found in Shared Rule '%s'" % (dstaddr.text, rule)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+
+		## Check Shared Address Objects for Invalid Mask							
+		for srdaddrElement in entryElement.findall('address/entry'):
+			address = srdaddrElement.attrib['name']
+			ipmask = srdaddrElement.find('ip-netmask')
+			if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
+				status = "Fail"
+				mesg = "Invalid Subnet Mask %s found in Shared Address Object '%s'" % (ipmask.text, address)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
+	
 def BPPanorama(ip, apikey):
 	BP01000(ip, apikey)
 	BP01001(ip, apikey)
@@ -1199,6 +1441,8 @@ def BPPanorama(ip, apikey):
 	BP01017(ip, apikey)
 	BP08000(ip, apikey)
 	BP08001(ip, apikey)
+	BP08002(ip, apikey)
+	BP08003(ip, apikey)
 
 def BPUmgPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -1221,6 +1465,8 @@ def BPUmgPan(ip, apikey):
 	BP01017(ip, apikey)
 	BP04000(ip, apikey)
 	BP04001(ip, apikey)
+	BP04002(ip, apikey)
+	BP04003(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -1243,6 +1489,8 @@ def BPMGPan(ip, apikey):
 	BP01017(ip, apikey)
 	BP04000(ip, apikey)
 	BP04001(ip, apikey)
+	BP04002(ip, apikey)
+	BP04003(ip, apikey)
 
 
 
@@ -1279,7 +1527,7 @@ print ""
 print "##############################################################"
 print "#### Palo Alto Best Practices Analysis Tool               ####"
 print "#### INTERNAL ONLY DO NOT DISTRIBUTE                      ####"
-print "#### Version: 0.4a ALPHA (Belfast)                        ####"
+print "#### Version: 0.5 ALPHA (Chicago)                         ####"
 print "####                                                      ####"
 print "#### Written By: Jessica Ferguson                         ####"
 print "#### jferguson@paloaltonetworks.com                       ####"
