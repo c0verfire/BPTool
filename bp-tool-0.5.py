@@ -6,26 +6,38 @@ import os
 import csv
 import requests
 import re
-from openpyxl import Workbook
+from openpyxl.workbook import Workbook
+from openpyxl.styles import Font, Fill, Color, PatternFill
+from openpyxl.formatting import FormulaRule, CellIsRule
 import time
 import datetime
 from datetime import date
 
 script, fwinfo = argv
-
-wb = Workbook()
-ws = wb.active
-ws['A1'] = 'IP Address/FQDN'
-ws['B1'] = 'BP Number'
-ws['C1'] = 'Title'
-ws['D1'] = 'Priority'
-ws['E1'] = 'Status'
-ws['F1'] = 'Description'
-
 now = datetime.datetime.now()
 curdate = now.strftime("%Y-%m-%d")
 repdate = now.strftime("%Y-%m-%d %H%M")
 requests.packages.urllib3.disable_warnings()
+
+wb = Workbook()
+ws = wb.active
+ws.freeze_panes = ws.cell('A3') 
+
+ws['A2'] = 'IP Address/FQDN'
+ws['B2'] = 'BP Number'
+ws['C2'] = 'Title'
+ws['D2'] = 'Priority'
+ws['E2'] = 'Status'
+ws['F2'] = 'Description'
+ws.column_dimensions["A"].width = 22.0
+ws.column_dimensions["B"].width = 13.0
+ws.column_dimensions["C"].width = 112.0
+ws.column_dimensions["E"].width = 13.0
+ws.column_dimensions["F"].width = 85.0
+a1 = ws['A1']
+a1.font = Font(size=20)
+redFill = PatternFill(start_color='FF4500', end_color='FF4500', fill_type='solid')
+greenFill = PatternFill(start_color='A9D08E', end_color='A9D08E', fill_type='solid')
 
 
 #-------Rule Definitions------
@@ -369,7 +381,7 @@ def BP01010(ip, apikey):
 			ws.append([ip, bpnum, title, priority, status, mesg])
 		elif telnet.text == 'no':
 			status = "Fail"
-			status = "Telnet is Enabled"
+			mesg = "Telnet is Enabled"
 			ws.append([ip, bpnum, title, priority, status, mesg])
 		
 		if http.text == 'yes':
@@ -378,7 +390,7 @@ def BP01010(ip, apikey):
 			ws.append([ip, bpnum, title, priority, status, mesg])
 		elif http.text == 'no':
 			status = "Fail"
-			status = "HTTP is Enabled"
+			mesg = "HTTP is Enabled"
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
 		if https is None:
@@ -1549,6 +1561,10 @@ if proceed == "yes" or proceed == "y":
 elif proceed == "no" or proceed == "n": 
 	quit()				
 			
+ws.title = 'Best Practice Report for %s' % cust
+ws['A1'] = 'Best Practice Report for %s - %s' % (cust, curdate)
+ws.conditional_formatting.add('E4:E1000', FormulaRule(formula=['NOT(ISERROR(SEARCH("Pass",E4)))'], stopIfTrue=True, fill=greenFill))	
+ws.conditional_formatting.add('E4:E1000', FormulaRule(formula=['NOT(ISERROR(SEARCH("Fail",E4)))'], stopIfTrue=True, fill=redFill))				
 wb.save('bp-results-' + cust + '-' + str(repdate) + '.xlsx') 
 print ""
 print "##############################################################"
