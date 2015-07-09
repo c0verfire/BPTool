@@ -10,3 +10,8 @@ Rule BP08003 - Panorama Alert on Invalid Subnet Masks <br>
 
 
 Added Option to Flag Engineer if Device Type is not Properly Specified in CSV File.  <br>
+Cleaned up formatting for the Excel Spreadsheet<br>
+<br>
+
+<h2>Bug Fixes version 0.5!!</h2> <br>
+Fixed a bug in BP01010 which caused the status field to not be printed.
