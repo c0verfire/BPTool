@@ -1217,8 +1217,75 @@ def BP04003(ip, apikey):
 				ws.append([ip, bpnum, title, priority, status, mesg])
 				
 	time.sleep(sleeptime)
-				
-				
+
+def BP04004(ip, apikey):	
+	bpnum = "BP04004"
+	title = "Define Syslog Servers on Firewall"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/shared"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/shared'):
+		syslog = entryElement.find('log-settings/syslog')
+		if syslog is None:
+			status = "Fail"
+			mesg = "Syslog not configured on system"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			for logsetElement in entryElement.findall('log-settings/syslog/entry'):
+				profile = logsetElement.attrib['name']
+				for srvElement in logsetElement.findall('server/entry'):
+					server = srvElement.attrib['name']
+					facility = srvElement.find('facility')
+					ipaddr = srvElement.find('server')
+					if facility.text == 'LOG_USER':
+						status = "Pass"
+						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					elif facility.text != 'LOG_USER':
+						status = "Fail"
+						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
+	
+def BP04005(ip, apikey):
+	bpnum = "BP04005"
+	title = "Define SNMP TRAP Servers on Firewall"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/shared"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/shared'):
+		snmpTrap = entryElement.find('log-settings/snmptrap')
+		if snmpTrap is None:
+			status = "Fail"
+			mesg = "SNMP Trap Server not configured on system"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			for snmpElement in entryElement.findall('log-settings/snmptrap/entry'):
+				profile = snmpElement.attrib['name']
+				for v2srvElement in snmpElement.findall('version/v2c/server/entry'):
+					server = v2srvElement.attrib['name']
+					ipaddr = v2srvElement.find('manager')
+					status = "Pass"
+					mesg = "SNMP v2 Trap Server %s is configured for IP %s" % (server, ipaddr.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				for v3srvElement in snmpElement.findall('version/v3/server/entry'):
+					server = v3srvElement.attrib['name']
+					ipaddr = v3srvElement.find('manager')
+					status = "Pass"
+					mesg = "SNMP v3 Trap Server %s is configured for IP %s" % (server, ipaddr.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+	
 #-------Rule Definitions------
 #----Rule 08000 - 11999: Panorama Specific Rules
 def BP08000(ip, apikey):
@@ -1436,6 +1503,76 @@ def BP08003(ip, apikey):
 				
 	time.sleep(sleeptime)
 	
+def BP08004(ip, apikey):
+	bpnum = "BP08004"
+	title = "Define Syslog Servers on Panorama"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/panorama"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/panorama'):
+		syslog = entryElement.find('log-settings/syslog')
+		if syslog is None:
+			status = "Fail"
+			mesg = "Syslog not configured on system"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			for logsetElement in entryElement.findall('log-settings/syslog/entry'):
+				profile = logsetElement.attrib['name']
+				for srvElement in logsetElement.findall('server/entry'):
+					server = srvElement.attrib['name']
+					facility = srvElement.find('facility')
+					ipaddr = srvElement.find('server')
+					if facility.text == 'LOG_USER':
+						status = "Pass"
+						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					elif facility.text != 'LOG_USER':
+						status = "Fail"
+						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+						
+	time.sleep(sleeptime)
+
+def BP08005(ip, apikey):
+	bpnum = "BP08005"
+	title = "Define SNMP TRAP Servers on Panorama"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/panorama"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/panorama'):
+		snmpTrap = entryElement.find('log-settings/snmptrap')
+		if snmpTrap is None:
+			status = "Fail"
+			mesg = "SNMP Trap Server not configured on system"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			for snmpElement in entryElement.findall('log-settings/snmptrap/entry'):
+				profile = snmpElement.attrib['name']
+				for v2srvElement in snmpElement.findall('version/v2c/server/entry'):
+					server = v2srvElement.attrib['name']
+					ipaddr = v2srvElement.find('manager')
+					status = "Pass"
+					mesg = "SNMP v2 Trap Server %s is configured for IP %s" % (server, ipaddr.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				for v3srvElement in snmpElement.findall('version/v3/server/entry'):
+					server = v3srvElement.attrib['name']
+					ipaddr = v3srvElement.find('manager')
+					status = "Pass"
+					mesg = "SNMP v3 Trap Server %s is configured for IP %s" % (server, ipaddr.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
+	
 def BPPanorama(ip, apikey):
 	BP01000(ip, apikey)
 	BP01001(ip, apikey)
@@ -1455,6 +1592,8 @@ def BPPanorama(ip, apikey):
 	BP08001(ip, apikey)
 	BP08002(ip, apikey)
 	BP08003(ip, apikey)
+	BP08004(ip, apikey)
+	BP08005(ip, apikey)
 
 def BPUmgPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -1479,6 +1618,8 @@ def BPUmgPan(ip, apikey):
 	BP04001(ip, apikey)
 	BP04002(ip, apikey)
 	BP04003(ip, apikey)
+	BP04004(ip, apikey)
+	BP04005(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -1503,6 +1644,8 @@ def BPMGPan(ip, apikey):
 	BP04001(ip, apikey)
 	BP04002(ip, apikey)
 	BP04003(ip, apikey)
+	BP04004(ip, apikey)
+	BP04005(ip, apikey)
 
 
 
