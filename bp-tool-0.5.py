@@ -7,6 +7,7 @@ import csv
 import requests
 import re
 from openpyxl.workbook import Workbook
+from openpyxl.worksheet import filters
 from openpyxl.styles import Font, Fill, Color, PatternFill
 from openpyxl.formatting import FormulaRule, CellIsRule
 import time
@@ -21,7 +22,7 @@ requests.packages.urllib3.disable_warnings()
 
 wb = Workbook()
 ws = wb.active
-ws.freeze_panes = ws.cell('A3') 
+#ws.freeze_panes = ws.cell('A3') 
 
 ws['A2'] = 'IP Address/FQDN'
 ws['B2'] = 'BP Number'
@@ -1286,6 +1287,96 @@ def BP04005(ip, apikey):
 					mesg = "SNMP v3 Trap Server %s is configured for IP %s" % (server, ipaddr.text)
 					ws.append([ip, bpnum, title, priority, status, mesg])
 	
+	time.sleep(sleeptime)
+
+def BP04006(ip, apikey):
+	bpnum = "BP04006"
+	title = "Define NetFlow Collectors on Firewall"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/shared"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/shared'):
+		nfProfile = entryElement.find('server-profile/netflow')
+		if nfProfile is None:
+			status = "Fail"
+			mesg = "NetFlow Collector Server not configured on system"
+			print (status, mesg)
+		else:
+			for nfprofElement in entryElement.findall('server-profile/netflow/entry'):
+				profile = nfprofElement.attrib['name']
+				refmin = nfprofElement.find('template-refresh-rate/minutes')
+				refpac = nfprofElement.find('template-refresh-rate/packets')
+				activetime = nfprofElement.find('active-timeout')
+				panfield = nfprofElement.find('export-enterprise-fields')
+				status = "Pass"
+				mesg = "NetFlow Profile %s configured with Template Refresh of %s minutes or %s packets with an active timeout of %s minutes. PAN-OS Field Types is enabled: %s" % (profile, refmin.text, refpac.text, activetime.text, panfield.text)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+				for serverElement in nfprofElement.findall('server/entry'):
+					nfserv = serverElement.attrib['name']
+					host = serverElement.find('host')
+					port = serverElement.find('port')
+					status = "Informational"
+					mesg = "NetFlow Profile %s is configured with server %s %s on port %s" % (profile, nfserv, host.text, port.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+					
+	time.sleep(sleeptime)
+	
+def BP04007(ip, apikey):
+	bpnum = "BP04007"
+	title = "Validate That a NetFlow Profile is Assigned to an Interface"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/network/interface"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/interface/ethernet/entry'):
+		intfName = entryElement.attrib['name']
+		nfprof = entryElement.find('layer3/netflow-profile')
+		if not nfprof is None:
+			status = "Informational"
+			mesg = "NetFlow Profile %s is configured on interface %s" % (nfprof.text, intfName)
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
+	
+def BP04008(ip, apikey):
+	bpnum = "BP04008"
+	title = "Configure target e-mail account to receive critical and high severity threat, system, and Wildfire log events."
+	priority = "Informational"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/shared"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/shared'):
+		email = entryElement.find('log-settings/email/')
+		if email is None:
+			status = "Informational"
+			mesg = "Email Profile is not configured on system"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			for emailsetElement in entryElement.findall('log-settings/email/entry'):
+				profile = emailsetElement.attrib['name']
+				for srvElement in emailsetElement.findall('server/entry'):
+					server = srvElement.attrib['name']
+					gateway = srvElement.find('gateway')
+					to = srvElement.find('to')
+					status = "Informational"
+					mesg = "Email Profile %s is configured for gateway %s using email %s" % (profile, gateway.text, to.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+					
+	time.sleep(sleeptime)
+					
 #-------Rule Definitions------
 #----Rule 08000 - 11999: Panorama Specific Rules
 def BP08000(ip, apikey):
@@ -1572,6 +1663,36 @@ def BP08005(ip, apikey):
 					ws.append([ip, bpnum, title, priority, status, mesg])
 	
 	time.sleep(sleeptime)
+
+def BP08006(ip, apikey):
+	bpnum = "BP08006"
+	title = "Configure target e-mail account to receive critical and high severity threat, system, and Wildfire log events."
+	priority = "Informational"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Panorama Config
+	xpath = "/config/panorama"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/panorama'):
+		email = entryElement.find('log-settings/email/')
+		if email is None:
+			status = "Informational"
+			mesg = "Email Profile is not configured on system"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			for emailsetElement in entryElement.findall('log-settings/email/entry'):
+				profile = emailsetElement.attrib['name']
+				for srvElement in emailsetElement.findall('server/entry'):
+					server = srvElement.attrib['name']
+					gateway = srvElement.find('gateway')
+					to = srvElement.find('to')
+					status = "Informational"
+					mesg = "Email Profile %s is configured for gateway %s using email %s" % (profile, gateway.text, to.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+					
+	time.sleep(sleeptime)
 	
 def BPPanorama(ip, apikey):
 	BP01000(ip, apikey)
@@ -1620,6 +1741,9 @@ def BPUmgPan(ip, apikey):
 	BP04003(ip, apikey)
 	BP04004(ip, apikey)
 	BP04005(ip, apikey)
+	BP04006(ip, apikey)
+	BP04007(ip, apikey)
+	BP04008(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -1646,6 +1770,10 @@ def BPMGPan(ip, apikey):
 	BP04003(ip, apikey)
 	BP04004(ip, apikey)
 	BP04005(ip, apikey)
+	BP04006(ip, apikey)
+	BP04007(ip, apikey)
+	BP04008(ip, apikey)
+	
 
 
 
@@ -1706,8 +1834,9 @@ elif proceed == "no" or proceed == "n":
 			
 ws.title = 'Best Practice Report for %s' % cust
 ws['A1'] = 'Best Practice Report for %s - %s' % (cust, curdate)
-ws.conditional_formatting.add('E4:E1000', FormulaRule(formula=['NOT(ISERROR(SEARCH("Pass",E4)))'], stopIfTrue=True, fill=greenFill))	
-ws.conditional_formatting.add('E4:E1000', FormulaRule(formula=['NOT(ISERROR(SEARCH("Fail",E4)))'], stopIfTrue=True, fill=redFill))				
+#ws.auto_filter.add_filter_column(0, "Pass", blank=False)
+ws.conditional_formatting.add('E3:E1048576', FormulaRule(formula=['NOT(ISERROR(SEARCH("Pass",E4)))'], stopIfTrue=True, fill=greenFill))	
+ws.conditional_formatting.add('E3:E1048576', FormulaRule(formula=['NOT(ISERROR(SEARCH("Fail",E4)))'], stopIfTrue=True, fill=redFill))				
 wb.save('bp-results-' + cust + '-' + str(repdate) + '.xlsx') 
 print ""
 print "##############################################################"
