@@ -1835,8 +1835,8 @@ elif proceed == "no" or proceed == "n":
 ws.title = 'Best Practice Report for %s' % cust
 ws['A1'] = 'Best Practice Report for %s - %s' % (cust, curdate)
 #ws.auto_filter.add_filter_column(0, "Pass", blank=False)
-ws.conditional_formatting.add('E3:E1048576', FormulaRule(formula=['NOT(ISERROR(SEARCH("Pass",E4)))'], stopIfTrue=True, fill=greenFill))	
-ws.conditional_formatting.add('E3:E1048576', FormulaRule(formula=['NOT(ISERROR(SEARCH("Fail",E4)))'], stopIfTrue=True, fill=redFill))				
+ws.conditional_formatting.add('E3:E1048576', FormulaRule(formula=['NOT(ISERROR(SEARCH("Pass",E3)))'], stopIfTrue=True, fill=greenFill))	
+ws.conditional_formatting.add('E3:E1048576', FormulaRule(formula=['NOT(ISERROR(SEARCH("Fail",E3)))'], stopIfTrue=True, fill=redFill))				
 wb.save('bp-results-' + cust + '-' + str(repdate) + '.xlsx') 
 print ""
 print "##############################################################"
