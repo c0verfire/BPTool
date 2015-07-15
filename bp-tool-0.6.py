@@ -1376,12 +1376,540 @@ def BP04008(ip, apikey):
 					ws.append([ip, bpnum, title, priority, status, mesg])
 					
 	time.sleep(sleeptime)
-					
+
+def BP04009(ip, apikey):
+	bpnum = "BP04009"
+	title = "Configure Firewall System Logs to Forward to Panorama, Syslog, SNMP, or eMail."
+	priority = "Medium"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/shared"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/shared'):
+		system = entryElement.find('log-settings/system/')
+		informational = entryElement.find('log-settings/system/informational')
+		low = entryElement.find('log-settings/system/low')
+		medium = entryElement.find('log-settings/system/medium')
+		high = entryElement.find('log-settings/system/high')
+		critical = entryElement.find('log-settings/system/critical')
+		if system is None:
+			status = "Fail"
+			mesg = "System Logging is not configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			break
+		
+		if not informational is None:
+			for infoElement in entryElement.findall('log-settings/system/informational'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				panorama = infoElement.find('send-to-panorama')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				if not panorama is None:
+					loggrp['Panorama'] = panorama.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System Informational Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Informational"
+			mesg = "Informational Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+
+		
+		if not low is None:
+			for infoElement in entryElement.findall('log-settings/system/low'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				panorama = infoElement.find('send-to-panorama')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				if not panorama is None:
+					loggrp['Panorama'] = panorama.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System Low Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Informational"
+			mesg = "Low Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+		if not medium is None:
+			for infoElement in entryElement.findall('log-settings/system/medium'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				panorama = infoElement.find('send-to-panorama')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				if not panorama is None:
+					loggrp['Panorama'] = panorama.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System Medium Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "Medium Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		if not high is None:
+			for infoElement in entryElement.findall('log-settings/system/high'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				panorama = infoElement.find('send-to-panorama')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				if not panorama is None:
+					loggrp['Panorama'] = panorama.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System High Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "High Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+				
+		if not critical is None:
+			for infoElement in entryElement.findall('log-settings/system/critical'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				panorama = infoElement.find('send-to-panorama')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				if not panorama is None:
+					loggrp['Panorama'] = panorama.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System Critical Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "Critical Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)
+
+def BP04010(ip, apikey):	
+	bpnum = "BP04010"
+	title = "Configure Firewall Config Logs to Forward to Panorama, Syslog, SNMP, or eMail."
+	priority = "Medium"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/shared"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/shared'):
+		config = entryElement.find('log-settings/config/')
+		if config is None:
+			status = "Fail"
+			mesg = "Configuration Change Logging is not configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			break
+		
+		for infoElement in entryElement.findall('log-settings/config/any'):
+			loggrp = {}
+			snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+			email = infoElement.find('send-email/using-email-setting')
+			syslog = infoElement.find('send-syslog/using-syslog-setting')
+			panorama = infoElement.find('send-to-panorama')
+			if not snmp is None:
+				loggrp['snmp'] = snmp.text
+			if not email is None:
+				loggrp['email'] = email.text
+			if not syslog is None:
+				loggrp['syslog'] = syslog.text
+			if not panorama is None:
+				loggrp['Panorama'] = panorama.text
+			for type, profile in loggrp.iteritems():
+				status = "Pass"
+				mesg = "Configuration Change Logging configured for " + type + ": " + profile
+				ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
+	
 #-------Rule Definitions------
-#----Rule 08000 - 11999: Panorama Specific Rules
+#----Rule 08000 - 9999: Panorama Platform Specific Rules
 def BP08000(ip, apikey):
 	bpnum = "BP08000"
-	title = "Panorama Use Descriptive Rule Names"
+	title = "Panorama Platform eTAC Recommended Versions of Code"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Management Profile
+	xpath = "<show><system><info></info></system></show>"
+	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/system"):
+		version = entryElement.find('sw-version')
+		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.2" or version.text == "6.1.3" or version.text == "6.1.4":
+			status = "Pass"
+			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
+
+def BP08001(ip, apikey):	
+	bpnum = "BP08001"
+	title = "Panorama Platform Should Use RADIUS for User Authentication"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Configured Authentication Profiles
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	# Query for Authentication Profile Protocol
+	xpath2 = "/config/panorama"
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+		
+	responseElement = ET.fromstring(rrule.text) 
+	for entryElement in responseElement.findall("./result/system"):
+		sysauth = entryElement.find('authentication-profile')
+		sysauthprof = []
+		if sysauth is None:
+			status = "Fail"
+			mesg = "Authentication Profile is not Configured, Using local authentication."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			sysauthprof.append(sysauth.text)
+			status = "Informational"
+			mesg = "Authentication Profile %s is configured" % sysauth.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		responseElement2 = ET.fromstring(rrule2.text)
+		for authprofElement in responseElement2.findall("./result/panorama/authentication-profile"):
+			for entryElement in authprofElement.findall('entry'):
+				entryName = entryElement.attrib['name']
+				if entryName in sysauthprof:
+					for methodElement in entryElement.findall('method'):
+						for methodTypeElement in methodElement:
+							methodType = methodTypeElement.tag.upper()
+							status = "Pass"
+							mesg = "Panorama Authentication Profile %s is using %s" % (entryName , methodType)
+							ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)
+
+def BP08002(ip, apikey):
+	bpnum = "BP08002"
+	title = "Panorama Platform Define Syslog Servers"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/panorama"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/panorama'):
+		syslog = entryElement.find('log-settings/syslog')
+		if syslog is None:
+			status = "Fail"
+			mesg = "Syslog not configured on system"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			for logsetElement in entryElement.findall('log-settings/syslog/entry'):
+				profile = logsetElement.attrib['name']
+				for srvElement in logsetElement.findall('server/entry'):
+					server = srvElement.attrib['name']
+					facility = srvElement.find('facility')
+					ipaddr = srvElement.find('server')
+					if facility.text == 'LOG_USER':
+						status = "Pass"
+						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					elif facility.text != 'LOG_USER':
+						status = "Fail"
+						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
+						ws.append([ip, bpnum, title, priority, status, mesg])
+						
+	time.sleep(sleeptime)
+
+def BP08003(ip, apikey):
+	bpnum = "BP08003"
+	title = "Panorama Platform Define SNMP TRAP Servers"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Shared Config
+	xpath = "/config/panorama"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/panorama'):
+		snmpTrap = entryElement.find('log-settings/snmptrap')
+		if snmpTrap is None:
+			status = "Fail"
+			mesg = "SNMP Trap Server not configured on system"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			for snmpElement in entryElement.findall('log-settings/snmptrap/entry'):
+				profile = snmpElement.attrib['name']
+				for v2srvElement in snmpElement.findall('version/v2c/server/entry'):
+					server = v2srvElement.attrib['name']
+					ipaddr = v2srvElement.find('manager')
+					status = "Pass"
+					mesg = "SNMP v2 Trap Server %s is configured for IP %s" % (server, ipaddr.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				for v3srvElement in snmpElement.findall('version/v3/server/entry'):
+					server = v3srvElement.attrib['name']
+					ipaddr = v3srvElement.find('manager')
+					status = "Pass"
+					mesg = "SNMP v3 Trap Server %s is configured for IP %s" % (server, ipaddr.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
+
+def BP08004(ip, apikey):
+	bpnum = "BP08004"
+	title = "Panorama Platform Configure target e-mail account to receive critical and high severity threat, system, and Wildfire log events."
+	priority = "Informational"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Panorama Config
+	xpath = "/config/panorama"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/panorama'):
+		email = entryElement.find('log-settings/email/')
+		if email is None:
+			status = "Informational"
+			mesg = "Email Profile is not configured on system"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			for emailsetElement in entryElement.findall('log-settings/email/entry'):
+				profile = emailsetElement.attrib['name']
+				for srvElement in emailsetElement.findall('server/entry'):
+					server = srvElement.attrib['name']
+					gateway = srvElement.find('gateway')
+					to = srvElement.find('to')
+					status = "Informational"
+					mesg = "Email Profile %s is configured for gateway %s using email %s" % (profile, gateway.text, to.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+					
+	time.sleep(sleeptime)
+	
+def BP08005(ip, apikey):
+	bpnum = "BP08005"
+	title = "Configure Panorama Platform System Logs to Forward to Syslog, SNMP, or eMail."
+	priority = "Medium"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Panorama Config
+	xpath = "/config/panorama"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/panorama'):
+		system = entryElement.find('log-settings/system/')
+		informational = entryElement.find('log-settings/system/informational')
+		low = entryElement.find('log-settings/system/low')
+		medium = entryElement.find('log-settings/system/medium')
+		high = entryElement.find('log-settings/system/high')
+		critical = entryElement.find('log-settings/system/critical')
+		if system is None:
+			status = "Fail"
+			mesg = "System Logging is not configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			break
+		
+		if not informational is None:
+			for infoElement in entryElement.findall('log-settings/system/informational'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System Informational Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Informational"
+			mesg = "Informational Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+
+		
+		if not low is None:
+			for infoElement in entryElement.findall('log-settings/system/low'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System Low Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Informational"
+			mesg = "Low Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+		if not medium is None:
+			for infoElement in entryElement.findall('log-settings/system/medium'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System Medium Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "Medium Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		
+		if not high is None:
+			for infoElement in entryElement.findall('log-settings/system/high'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System High Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "High Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+				
+		if not critical is None:
+			for infoElement in entryElement.findall('log-settings/system/critical'):
+				loggrp = {}
+				snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+				email = infoElement.find('send-email/using-email-setting')
+				syslog = infoElement.find('send-syslog/using-syslog-setting')
+				if not snmp is None:
+					loggrp['snmp'] = snmp.text
+				if not email is None:
+					loggrp['email'] = email.text
+				if not syslog is None:
+					loggrp['syslog'] = syslog.text
+				for type, profile in loggrp.iteritems():
+					status = "Pass"
+					mesg = "System Critical Logging configured for " + type + ": " + profile
+					ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "Critical Logging Profiles not Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])		
+
+	time.sleep(sleeptime)
+
+def BP08006(ip, apikey):	
+	bpnum = "BP08006"
+	title = "Configure Panorama Platform Config Logs to Forward to Syslog, SNMP, or eMail."
+	priority = "Medium"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Panorama Config
+	xpath = "/config/panorama"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/panorama'):
+		config = entryElement.find('log-settings/config/')
+		if config is None:
+			status = "Fail"
+			mesg = "Configuration Change Logging is not configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])		
+			break
+		
+		for infoElement in entryElement.findall('log-settings/config/any'):
+			loggrp = {}
+			snmp = infoElement.find('send-snmptrap/using-snmptrap-setting')
+			email = infoElement.find('send-email/using-email-setting')
+			syslog = infoElement.find('send-syslog/using-syslog-setting')
+			panorama = infoElement.find('send-to-panorama')
+			if not snmp is None:
+				loggrp['snmp'] = snmp.text
+			if not email is None:
+				loggrp['email'] = email.text
+			if not syslog is None:
+				loggrp['syslog'] = syslog.text
+			if not panorama is None:
+				loggrp['Panorama'] = panorama.text
+			for type, profile in loggrp.iteritems():
+				status = "Pass"
+				mesg = "Configuration Change Logging configured for " + type + ": " + profile
+				ws.append([ip, bpnum, title, priority, status, mesg])		
+	
+	time.sleep(sleeptime)
+
+
+#-------Rule Definitions------
+#----Rule 10000 - 13999: Panorama Managed Device Specific Rules
+def BP10000(ip, apikey):
+	bpnum = "BP10000"
+	title = "Panorama Device Groups Use Descriptive Rule Names"
 	priority = "Low"
 	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Device Group Rules
@@ -1425,76 +1953,10 @@ def BP08000(ip, apikey):
 			ws.append([ip, bpnum, title, priority, status, mesg])
 			
 	time.sleep(sleeptime)
-			
-def BP08001(ip, apikey):
-	bpnum = "BP08001"
-	title = "Panorama eTAC Recommended Versions of Code"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Management Profile
-	xpath = "<show><system><info></info></system></show>"
-	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall("./result/system"):
-		version = entryElement.find('sw-version')
-		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.2" or version.text == "6.1.3" or version.text == "6.1.4":
-			status = "Pass"
-			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		else:
-			status = "Fail"
-			mesg = "Current Version: %s - Firewall is not running an eTAC Recommended Version of Code. For more information refer to https://intranet.paloaltonetworks.com/docs/DOC-4857" % version.text
-			ws.append([ip, bpnum, title, priority, status, mesg])
-			
-	time.sleep(sleeptime)
-
-def BP08002(ip, apikey):	
-	bpnum = "BP08002"
-	title = "Panorama Should Use RADIUS for User Authentication"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Configured Authentication Profiles
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	# Query for Authentication Profile Protocol
-	xpath2 = "/config/panorama"
-	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
-	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
-		
-	responseElement = ET.fromstring(rrule.text) 
-	for entryElement in responseElement.findall("./result/system"):
-		sysauth = entryElement.find('authentication-profile')
-		sysauthprof = []
-		if sysauth is None:
-			status = "Fail"
-			mesg = "Authentication Profile is not Configured, Using local authentication."
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		else:
-			sysauthprof.append(sysauth.text)
-			status = "Informational"
-			mesg = "Authentication Profile %s is configured" % sysauth.text
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		
-		responseElement2 = ET.fromstring(rrule2.text)
-		for authprofElement in responseElement2.findall("./result/panorama/authentication-profile"):
-			for entryElement in authprofElement.findall('entry'):
-				entryName = entryElement.attrib['name']
-				if entryName in sysauthprof:
-					for methodElement in entryElement.findall('method'):
-						for methodTypeElement in methodElement:
-							methodType = methodTypeElement.tag.upper()
-							status = "Pass"
-							mesg = "Panorama Authentication Profile %s is using %s" % (entryName , methodType)
-							ws.append([ip, bpnum, title, priority, status, mesg])
-
-	time.sleep(sleeptime)
-
-def BP08003(ip, apikey):
-	bpnum = "BP08003"
-	title = "Panorama Alert on Invalid Subnet Masks"
+def BP10001(ip, apikey):
+	bpnum = "BP10001"
+	title = "Panorama Device Groups Alert on Invalid Subnet Masks"
 	priority = "Low"
 	print "Running Rule %s - %s" % (bpnum, title)
 	# Query for Device Group Objects
@@ -1591,108 +2053,10 @@ def BP08003(ip, apikey):
 				status = "Fail"
 				mesg = "Invalid Subnet Mask %s found in Shared Address Object '%s'" % (ipmask.text, address)
 				ws.append([ip, bpnum, title, priority, status, mesg])
-				
-	time.sleep(sleeptime)
-	
-def BP08004(ip, apikey):
-	bpnum = "BP08004"
-	title = "Define Syslog Servers on Panorama"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Shared Config
-	xpath = "/config/panorama"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall('./result/panorama'):
-		syslog = entryElement.find('log-settings/syslog')
-		if syslog is None:
-			status = "Fail"
-			mesg = "Syslog not configured on system"
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		else:
-			for logsetElement in entryElement.findall('log-settings/syslog/entry'):
-				profile = logsetElement.attrib['name']
-				for srvElement in logsetElement.findall('server/entry'):
-					server = srvElement.attrib['name']
-					facility = srvElement.find('facility')
-					ipaddr = srvElement.find('server')
-					if facility.text == 'LOG_USER':
-						status = "Pass"
-						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-					elif facility.text != 'LOG_USER':
-						status = "Fail"
-						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-						
-	time.sleep(sleeptime)
-
-def BP08005(ip, apikey):
-	bpnum = "BP08005"
-	title = "Define SNMP TRAP Servers on Panorama"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Shared Config
-	xpath = "/config/panorama"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall('./result/panorama'):
-		snmpTrap = entryElement.find('log-settings/snmptrap')
-		if snmpTrap is None:
-			status = "Fail"
-			mesg = "SNMP Trap Server not configured on system"
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		else:
-			for snmpElement in entryElement.findall('log-settings/snmptrap/entry'):
-				profile = snmpElement.attrib['name']
-				for v2srvElement in snmpElement.findall('version/v2c/server/entry'):
-					server = v2srvElement.attrib['name']
-					ipaddr = v2srvElement.find('manager')
-					status = "Pass"
-					mesg = "SNMP v2 Trap Server %s is configured for IP %s" % (server, ipaddr.text)
-					ws.append([ip, bpnum, title, priority, status, mesg])
-				for v3srvElement in snmpElement.findall('version/v3/server/entry'):
-					server = v3srvElement.attrib['name']
-					ipaddr = v3srvElement.find('manager')
-					status = "Pass"
-					mesg = "SNMP v3 Trap Server %s is configured for IP %s" % (server, ipaddr.text)
-					ws.append([ip, bpnum, title, priority, status, mesg])
-	
-	time.sleep(sleeptime)
-
-def BP08006(ip, apikey):
-	bpnum = "BP08006"
-	title = "Configure target e-mail account to receive critical and high severity threat, system, and Wildfire log events."
-	priority = "Informational"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Panorama Config
-	xpath = "/config/panorama"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall('./result/panorama'):
-		email = entryElement.find('log-settings/email/')
-		if email is None:
-			status = "Informational"
-			mesg = "Email Profile is not configured on system"
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		else:
-			for emailsetElement in entryElement.findall('log-settings/email/entry'):
-				profile = emailsetElement.attrib['name']
-				for srvElement in emailsetElement.findall('server/entry'):
-					server = srvElement.attrib['name']
-					gateway = srvElement.find('gateway')
-					to = srvElement.find('to')
-					status = "Informational"
-					mesg = "Email Profile %s is configured for gateway %s using email %s" % (profile, gateway.text, to.text)
-					ws.append([ip, bpnum, title, priority, status, mesg])
 					
-	time.sleep(sleeptime)
+	
+#-------Device Group Definitions------
+#----Defines which rules are tied to which device class.
 	
 def BPPanorama(ip, apikey):
 	BP01000(ip, apikey)
@@ -1715,6 +2079,10 @@ def BPPanorama(ip, apikey):
 	BP08003(ip, apikey)
 	BP08004(ip, apikey)
 	BP08005(ip, apikey)
+	BP08006(ip, apikey)
+	BP10000(ip, apikey)
+	BP10001(ip, apikey)
+
 
 def BPUmgPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -1744,6 +2112,8 @@ def BPUmgPan(ip, apikey):
 	BP04006(ip, apikey)
 	BP04007(ip, apikey)
 	BP04008(ip, apikey)
+	BP04009(ip, apikey)
+	BP04010(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -1773,6 +2143,8 @@ def BPMGPan(ip, apikey):
 	BP04006(ip, apikey)
 	BP04007(ip, apikey)
 	BP04008(ip, apikey)
+	BP04009(ip, apikey)
+	BP04010(ip, apikey)
 	
 
 
