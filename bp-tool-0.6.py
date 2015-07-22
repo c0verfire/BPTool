@@ -1185,13 +1185,17 @@ def BP04003(ip, apikey):
 			rule = secruleElement.attrib['name']
 			for srcaddrElement in secruleElement.findall('source'):
 				srcaddr = srcaddrElement.find('member')
-				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+				if srcaddr is None:
+					continue
+				elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
 					status = "Fail"
 					mesg = "Invalid Subnet Mask %s found in vsys '%s' Rule '%s'" % (srcaddr.text, vsys, rule)
 					ws.append([ip, bpnum, title, priority, status, mesg])
 			for dstaddrElement in secruleElement.findall('destination'):
 				dstaddr = dstaddrElement.find('member')
-				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+				if dstaddr is None:
+					continue
+				elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
 					status = "Fail"
 					mesg = "Invalid Subnet Mask %s found in vsys '%s' Rule '%s'" % (dstaddr.text, vsys, rule)
 					ws.append([ip, bpnum, title, priority, status, mesg])
@@ -1200,7 +1204,9 @@ def BP04003(ip, apikey):
 		for vsysaddrElement in entryElement.findall('address/entry'):
 			address = vsysaddrElement.attrib['name']
 			ipmask = vsysaddrElement.find('ip-netmask')
-			if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
+			if ipmask is None:
+				continue
+			elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
 				status = "Fail"
 				mesg = "Invalid Subnet Mask %s found in vsys '%s' Address Object '%s'" % (ipmask.text, vsys, address)
 				ws.append([ip, bpnum, title, priority, status, mesg])
@@ -1212,7 +1218,9 @@ def BP04003(ip, apikey):
 		for srdaddrElement in entryElement.findall('address/entry'):
 			address = srdaddrElement.attrib['name']
 			ipmask = srdaddrElement.find('ip-netmask')
-			if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
+			if ipmask is None:
+				continue
+			elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
 				status = "Fail"
 				mesg = "Invalid Subnet Mask %s found in Shared Address Object '%s'" % (ipmask.text, address)
 				ws.append([ip, bpnum, title, priority, status, mesg])
@@ -1305,7 +1313,7 @@ def BP04006(ip, apikey):
 		if nfProfile is None:
 			status = "Fail"
 			mesg = "NetFlow Collector Server not configured on system"
-			print (status, mesg)
+			ws.append([ip, bpnum, title, priority, status, mesg])
 		else:
 			for nfprofElement in entryElement.findall('server-profile/netflow/entry'):
 				profile = nfprofElement.attrib['name']
@@ -1908,6 +1916,55 @@ def BP08006(ip, apikey):
 #-------Rule Definitions------
 #----Rule 10000 - 13999: Panorama Managed Device Specific Rules
 def BP10000(ip, apikey):
+	bpnum = "BP010000"
+	title = "Configure Hostname on System in Panorama Device Template"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/template"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	rresp = ET.fromstring(rrule.content)
+	
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/template/entry'):
+		template = entryElement.attrib['name']
+		for hostElement in entryElement.findall('config/devices/entry/deviceconfig'):
+			hostname = hostElement.find('system/hostname')
+			if hostname is None:
+				break
+			elif hostname.text:
+				status = "Pass"
+				mesg = "Hostname %s is configured in Panorama Template %s" % (hostname.text, template)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
+
+def BP10001(ip, apikey):
+	bpnum = "BP010001"
+	title = "Configure Domain Name on System in Panorama Device Template"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/template"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	rresp = ET.fromstring(rrule.content)
+	
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/template/entry'):
+		template = entryElement.attrib['name']
+		for domainElement in entryElement.findall('config/devices/entry/deviceconfig'):
+			domain = domainElement.find('system/domain')
+			if domain is None:
+				break
+			elif domain.text:
+				status = "Pass"
+				mesg = "Domain %s is configured in Panorama Template %s" % (domain.text, template)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+
+def BP10005(ip, apikey):
 	bpnum = "BP10000"
 	title = "Panorama Device Groups Use Descriptive Rule Names"
 	priority = "Low"
@@ -2059,29 +2116,29 @@ def BP10001(ip, apikey):
 #----Defines which rules are tied to which device class.
 	
 def BPPanorama(ip, apikey):
-	BP01000(ip, apikey)
-	BP01001(ip, apikey)
-	BP01002(ip, apikey)
-	BP01003(ip, apikey)
-	BP01005(ip, apikey)
-	BP01006(ip, apikey)
-	BP01007(ip, apikey)
-	BP01008(ip, apikey)
-	BP01009(ip, apikey)
-	BP01010(ip, apikey)
-	BP01011(ip, apikey)
-	BP01015(ip, apikey)
-	BP01016(ip, apikey)
-	BP01017(ip, apikey)
-	BP08000(ip, apikey)
-	BP08001(ip, apikey)
-	BP08002(ip, apikey)
-	BP08003(ip, apikey)
-	BP08004(ip, apikey)
-	BP08005(ip, apikey)
-	BP08006(ip, apikey)
-	BP10000(ip, apikey)
-	BP10001(ip, apikey)
+	BP01000(ip, apikey)  #  Configure Hostname on System
+	BP01001(ip, apikey)  #  Configure Domain Name on System
+	BP01002(ip, apikey)  #  Replace default administrative super-user account by creating a new superuser account and then deleting the admin account.
+	BP01003(ip, apikey)  #  Configure administrative access lockouts and timeouts in the authentication settings portion of the device setup tab. Configure administrative timeout to 10 minutes; apply these settings to administrator accounts.
+	BP01005(ip, apikey)  #  Configure the firewall to verify the identity of the Palo Alto update server on the device setup page.
+	BP01006(ip, apikey)  #  Configure login banner.
+	BP01007(ip, apikey)  #  Configure Geo-Location Longitude and Latitude
+	BP01008(ip, apikey)  #  Configure the firewall to use redundant DNS Servers
+	BP01009(ip, apikey)  #  Configure the firewall to use redundant NTP Servers
+	BP01010(ip, apikey)  #  Limit management interface traffic to ping and secure protocols only
+	BP01011(ip, apikey)  #  Limit permitted IP Addresses to those necessary for device management
+	BP01015(ip, apikey)  #  Configure minimum password complexity profile 
+	BP01016(ip, apikey)  #  Ensure that Firewall Dynamic Updates are Processing
+	BP01017(ip, apikey)  #  Ensure that Dynamic Update Times are Configured Properly
+	BP08000(ip, apikey)  #  Panorama Platform eTAC Recommended Versions of Code
+	BP08001(ip, apikey)  #  Panorama Platform Should Use RADIUS for User Authentication
+	BP08002(ip, apikey)  #  Panorama Platform Define Syslog Servers
+	BP08003(ip, apikey)  #  Panorama Platform Define SNMP TRAP Servers
+	BP08004(ip, apikey)  #  Panorama Platform Configure target e-mail account to receive critical and high severity threat, system, and Wildfire log events.
+	BP08005(ip, apikey)  #  Configure Panorama Platform System Logs to Forward to Syslog, SNMP, or eMail.
+	BP08006(ip, apikey)  #  Configure Panorama Platform Config Logs to Forward to Syslog, SNMP, or eMail.
+	BP10000(ip, apikey)  #  Panorama Device Groups Use Descriptive Rule Names
+	BP10001(ip, apikey)  #  Panorama Device Groups Alert on Invalid Subnet Masks
 
 
 def BPUmgPan(ip, apikey):
@@ -2097,23 +2154,23 @@ def BPUmgPan(ip, apikey):
 	BP01009(ip, apikey)
 	BP01010(ip, apikey)
 	BP01011(ip, apikey)
-	BP01012(ip, apikey)
-	BP01013(ip, apikey)
-	BP01014(ip, apikey)
+	BP01012(ip, apikey)  #  Enable Log on High DP Load
+	BP01013(ip, apikey)  #  Secure Production Interface Management Profiles
+	BP01014(ip, apikey)  #  Restrict Production Interface Management Profiles Source Addresses
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
 	BP01017(ip, apikey)
-	BP04000(ip, apikey)
-	BP04001(ip, apikey)
-	BP04002(ip, apikey)
-	BP04003(ip, apikey)
-	BP04004(ip, apikey)
-	BP04005(ip, apikey)
-	BP04006(ip, apikey)
-	BP04007(ip, apikey)
-	BP04008(ip, apikey)
-	BP04009(ip, apikey)
-	BP04010(ip, apikey)
+	BP04000(ip, apikey)  #  Firewall Should Use Descriptive Rule Names
+	BP04001(ip, apikey)  #  Firewall eTAC Recommended Versions of Code
+	BP04002(ip, apikey)  #  Firewall Should Use RADIUS for User Authentication
+	BP04003(ip, apikey)  #  Firewall Alert on Invalid Subnet Masks
+	BP04004(ip, apikey)  #  Define Syslog Servers on Firewall
+	BP04005(ip, apikey)  #  Define SNMP TRAP Servers on Firewall
+	BP04006(ip, apikey)  #  Define NetFlow Collectors on Firewall
+	BP04007(ip, apikey)  #  Validate That a NetFlow Profile is Assigned to an Interface
+	BP04008(ip, apikey)  #  Configure target e-mail account to receive critical and high severity threat, system, and Wildfire log events.
+	BP04009(ip, apikey)  #  Configure Firewall System Logs to Forward to Panorama, Syslog, SNMP, or eMail.
+	BP04010(ip, apikey)  #  Configure Firewall Config Logs to Forward to Panorama, Syslog, SNMP, or eMail.
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -2204,7 +2261,7 @@ if proceed == "yes" or proceed == "y":
 elif proceed == "no" or proceed == "n": 
 	quit()				
 			
-ws.title = 'Best Practice Report for %s' % cust
+ws.title = 'BP Report for %s' % cust
 ws['A1'] = 'Best Practice Report for %s - %s' % (cust, curdate)
 #ws.auto_filter.add_filter_column(0, "Pass", blank=False)
 ws.conditional_formatting.add('E3:E1048576', FormulaRule(formula=['NOT(ISERROR(SEARCH("Pass",E3)))'], stopIfTrue=True, fill=greenFill))	
