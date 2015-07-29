@@ -126,7 +126,7 @@ def BP01002(ip, apikey):
 	
 def BP01003(ip, apikey):
 	bpnum = "BP01003"
-	title = "Configure administrative access lockouts and timeouts in the authentication settings portion of the device setup tab. Configure administrative timeout to 10 minutes; apply these settings to administrator accounts."
+	title = "Require an idle timeout value of 10 minutes for device management."
 	priority = "Low"
 	print "Running Rule %s - %s" % (bpnum, title)
 	rxpath = "result/idle-timeout"
@@ -135,7 +135,7 @@ def BP01003(ip, apikey):
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	rresp = ET.fromstring(rrule.content)
 	result = rresp.find(rxpath)
-	if (result is None):
+	if result is None:
 		status = "Fail"
 		mesg = "Idle Timeout should be set to 10 minutes"
 	elif result.text != "10":
@@ -516,129 +516,7 @@ def BP01011(ip, apikey):
 			
 	time.sleep(sleeptime)
 			
-def BP01012(ip, apikey):
-	bpnum = "BP01012"
-	title = "Enable Log on High DP Load"
-	priority = "High"
-	print "Running Rule %s - %s" % (bpnum, title)
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall("./result/setting/management"):
-		loghighdp = entryElement.find('enable-log-high-dp-load')
-		if loghighdp is None:
-			status = "Fail"
-			mesg = "High DP Logging Not Enabled."
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		elif loghighdp.text == 'yes':
-			status = "Pass"
-			mesg = "High DP Logging Is Enabled."
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		elif loghighdp.text == 'no':
-			status = "Fail"
-			mesg = "High DP Logging Not Enabled."
-			ws.append([ip, bpnum, title, priority, status, mesg])
-			
-	time.sleep(sleeptime)
-			
-def BP01013(ip, apikey):
-	bpnum = "BP01013"
-	title = "Secure Production Interface Management Profiles"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Interface Management Profile
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/network/profiles/interface-management-profile"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	# Query for Interface Information
-	xpath2 = "/config/devices/entry[@name='localhost.localdomain']/network/interface/ethernet"
-	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
-	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
-	
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall("./result/interface-management-profile/entry"):
-		profile = entryElement.attrib['name']
-		ssh = entryElement.find('ssh')
-		https = entryElement.find('https')
-		ping = entryElement.find('ping')
-		http = entryElement.find('http')
-		telnet = entryElement.find('telnet')
-		goodauth = []
-		badauth = []
-		if http is None and telnet is None:
-			goodauth.append(profile)
-			for a in goodauth:
-				status = "Pass"
-				mesg = a + ' is configured correctly'
-				ws.append([ip, bpnum, title, priority, status, mesg])
-		if not http is None and http.text == 'yes' or not telnet is None and telnet.text == 'yes':
-			badauth.append(profile)
-			for a in badauth:
-				status = "Fail"
-				mesg = a + ' is configured incorrectly'
-				ws.append([ip, bpnum, title, priority, status, mesg])
-		if not http is None and http.text == 'no' or not telnet is None and telnet.text == 'no':
-			goodauth.append(profile)
-			for a in goodauth:
-				status = "Pass"
-				mesg = a + ' is configured correctly'
-				ws.append([ip, bpnum, title, priority, status, mesg])
 
-		responseElement2 = ET.fromstring(rrule2.text)
-		for intfElement in responseElement2.findall("./result/ethernet/entry"):
-			intfgrp = {}
-			interface = intfElement.attrib['name']
-			mgmtprofElement = intfElement.find('layer3/interface-management-profile')
-			if mgmtprofElement is None:
-				status = "Informational"
-				mesg = interface + ' does not have an Management Profile assigned'
-				ws.append([ip, bpnum, title, priority, status, mesg])										
-			if not mgmtprofElement is None and not interface in intfgrp:
-				intfgrp[interface] = mgmtprofElement.text
-				for interface, mgmtprofElement in intfgrp.iteritems():
-					if mgmtprofElement in goodauth:
-						status = "Pass"
-						mesg = interface + ' is using Secure Management Profile ' + mgmtprofElement
-						ws.append([ip, bpnum, title, priority, status, mesg])
-					if mgmtprofElement in badauth:
-						status = "Fail"
-						mesg = interface + ' is using unsecure Management Profile ' + mgmtprofElement
-						ws.append([ip, bpnum, title, priority, status, mesg])
-						
-	time.sleep(sleeptime)
-
-def BP01014(ip, apikey):
-	bpnum = "BP01014"
-	title = "Restrict Production Interface Management Profiles Source Addresses"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Management Profile
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/network/profiles/interface-management-profile"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall("./result/interface-management-profile/entry"):
-		profile = entryElement.attrib['name']
-		permip = entryElement.find('permitted-ip')
-		if permip is None:
-			status = "Fail"
-			mesg = "No Management ACL has been defined for " + profile
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		for ipElement in entryElement.findall("permitted-ip/entry"):
-			mgmtip = ipElement.attrib['name']
-			if mgmtip == '0.0.0.0/0':
-				status = "Fail"
-				mesg = "Management IP ACL has Default Entry 0.0.0.0/0 in Profile %s" % profile
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif mgmtip:
-				status = "Pass"
-				mesg = "Valid Management ACL has been defined for IP %s. in Profile %s" % (mgmtip, profile)
-				ws.append([ip, bpnum, title, priority, status, mesg])
-				
-	time.sleep(sleeptime)
 
 def BP01015(ip, apikey):
 	bpnum = "BP01015"
@@ -1572,6 +1450,130 @@ def BP04010(ip, apikey):
 	
 	time.sleep(sleeptime)
 	
+def BP04011(ip, apikey):
+	bpnum = "BP04011"
+	title = "Enable Log on High DP Load"
+	priority = "High"
+	print "Running Rule %s - %s" % (bpnum, title)
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/setting/management"):
+		loghighdp = entryElement.find('enable-log-high-dp-load')
+		if loghighdp is None:
+			status = "Fail"
+			mesg = "High DP Logging Not Enabled."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif loghighdp.text == 'yes':
+			status = "Pass"
+			mesg = "High DP Logging Is Enabled."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif loghighdp.text == 'no':
+			status = "Fail"
+			mesg = "High DP Logging Not Enabled."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
+			
+def BP04012(ip, apikey):
+	bpnum = "BP04012"
+	title = "Secure Production Interface Management Profiles"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Interface Management Profile
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/network/profiles/interface-management-profile"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	# Query for Interface Information
+	xpath2 = "/config/devices/entry[@name='localhost.localdomain']/network/interface/ethernet"
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/interface-management-profile/entry"):
+		profile = entryElement.attrib['name']
+		ssh = entryElement.find('ssh')
+		https = entryElement.find('https')
+		ping = entryElement.find('ping')
+		http = entryElement.find('http')
+		telnet = entryElement.find('telnet')
+		goodauth = []
+		badauth = []
+		if http is None and telnet is None:
+			goodauth.append(profile)
+			for a in goodauth:
+				status = "Pass"
+				mesg = a + ' is configured correctly'
+				ws.append([ip, bpnum, title, priority, status, mesg])
+		if not http is None and http.text == 'yes' or not telnet is None and telnet.text == 'yes':
+			badauth.append(profile)
+			for a in badauth:
+				status = "Fail"
+				mesg = a + ' is configured incorrectly'
+				ws.append([ip, bpnum, title, priority, status, mesg])
+		if not http is None and http.text == 'no' or not telnet is None and telnet.text == 'no':
+			goodauth.append(profile)
+			for a in goodauth:
+				status = "Pass"
+				mesg = a + ' is configured correctly'
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+		responseElement2 = ET.fromstring(rrule2.text)
+		for intfElement in responseElement2.findall("./result/ethernet/entry"):
+			intfgrp = {}
+			interface = intfElement.attrib['name']
+			mgmtprofElement = intfElement.find('layer3/interface-management-profile')
+			if mgmtprofElement is None:
+				status = "Informational"
+				mesg = interface + ' does not have an Management Profile assigned'
+				ws.append([ip, bpnum, title, priority, status, mesg])										
+			if not mgmtprofElement is None and not interface in intfgrp:
+				intfgrp[interface] = mgmtprofElement.text
+				for interface, mgmtprofElement in intfgrp.iteritems():
+					if mgmtprofElement in goodauth:
+						status = "Pass"
+						mesg = interface + ' is using Secure Management Profile ' + mgmtprofElement
+						ws.append([ip, bpnum, title, priority, status, mesg])
+					if mgmtprofElement in badauth:
+						status = "Fail"
+						mesg = interface + ' is using unsecure Management Profile ' + mgmtprofElement
+						ws.append([ip, bpnum, title, priority, status, mesg])
+						
+	time.sleep(sleeptime)
+
+def BP04013(ip, apikey):
+	bpnum = "BP04013"
+	title = "Restrict Production Interface Management Profiles Source Addresses"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Management Profile
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/network/profiles/interface-management-profile"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/interface-management-profile/entry"):
+		profile = entryElement.attrib['name']
+		permip = entryElement.find('permitted-ip')
+		if permip is None:
+			status = "Fail"
+			mesg = "No Management ACL has been defined for " + profile
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		for ipElement in entryElement.findall("permitted-ip/entry"):
+			mgmtip = ipElement.attrib['name']
+			if mgmtip == '0.0.0.0/0':
+				status = "Fail"
+				mesg = "Management IP ACL has Default Entry 0.0.0.0/0 in Profile %s" % profile
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			elif mgmtip:
+				status = "Pass"
+				mesg = "Valid Management ACL has been defined for IP %s. in Profile %s" % (mgmtip, profile)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	time.sleep(sleeptime)
+	
 #-------Rule Definitions------
 #----Rule 08000 - 9999: Panorama Platform Specific Rules
 def BP08000(ip, apikey):
@@ -1639,6 +1641,8 @@ def BP08001(ip, apikey):
 							ws.append([ip, bpnum, title, priority, status, mesg])
 
 	time.sleep(sleeptime)
+	
+
 
 def BP08002(ip, apikey):
 	bpnum = "BP08002"
@@ -1916,55 +1920,6 @@ def BP08006(ip, apikey):
 #-------Rule Definitions------
 #----Rule 10000 - 13999: Panorama Managed Device Specific Rules
 def BP10000(ip, apikey):
-	bpnum = "BP010000"
-	title = "Configure Hostname on System in Panorama Device Template"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/template"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	rresp = ET.fromstring(rrule.content)
-	
-	
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall('./result/template/entry'):
-		template = entryElement.attrib['name']
-		for hostElement in entryElement.findall('config/devices/entry/deviceconfig'):
-			hostname = hostElement.find('system/hostname')
-			if hostname is None:
-				break
-			elif hostname.text:
-				status = "Pass"
-				mesg = "Hostname %s is configured in Panorama Template %s" % (hostname.text, template)
-				ws.append([ip, bpnum, title, priority, status, mesg])
-				
-	time.sleep(sleeptime)
-
-def BP10001(ip, apikey):
-	bpnum = "BP010001"
-	title = "Configure Domain Name on System in Panorama Device Template"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/template"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	rresp = ET.fromstring(rrule.content)
-	
-	
-	responseElement = ET.fromstring(rrule.text)
-	for entryElement in responseElement.findall('./result/template/entry'):
-		template = entryElement.attrib['name']
-		for domainElement in entryElement.findall('config/devices/entry/deviceconfig'):
-			domain = domainElement.find('system/domain')
-			if domain is None:
-				break
-			elif domain.text:
-				status = "Pass"
-				mesg = "Domain %s is configured in Panorama Template %s" % (domain.text, template)
-				ws.append([ip, bpnum, title, priority, status, mesg])
-
-
-def BP10005(ip, apikey):
 	bpnum = "BP10000"
 	title = "Panorama Device Groups Use Descriptive Rule Names"
 	priority = "Low"
@@ -2137,9 +2092,8 @@ def BPPanorama(ip, apikey):
 	BP08004(ip, apikey)  #  Panorama Platform Configure target e-mail account to receive critical and high severity threat, system, and Wildfire log events.
 	BP08005(ip, apikey)  #  Configure Panorama Platform System Logs to Forward to Syslog, SNMP, or eMail.
 	BP08006(ip, apikey)  #  Configure Panorama Platform Config Logs to Forward to Syslog, SNMP, or eMail.
-	BP10000(ip, apikey)  #  Panorama Device Groups Use Descriptive Rule Names
-	BP10001(ip, apikey)  #  Panorama Device Groups Alert on Invalid Subnet Masks
-
+	BP10000(ip, apikey)  
+	BP10001(ip, apikey)  
 
 def BPUmgPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -2154,9 +2108,6 @@ def BPUmgPan(ip, apikey):
 	BP01009(ip, apikey)
 	BP01010(ip, apikey)
 	BP01011(ip, apikey)
-	BP01012(ip, apikey)  #  Enable Log on High DP Load
-	BP01013(ip, apikey)  #  Secure Production Interface Management Profiles
-	BP01014(ip, apikey)  #  Restrict Production Interface Management Profiles Source Addresses
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
 	BP01017(ip, apikey)
@@ -2171,6 +2122,9 @@ def BPUmgPan(ip, apikey):
 	BP04008(ip, apikey)  #  Configure target e-mail account to receive critical and high severity threat, system, and Wildfire log events.
 	BP04009(ip, apikey)  #  Configure Firewall System Logs to Forward to Panorama, Syslog, SNMP, or eMail.
 	BP04010(ip, apikey)  #  Configure Firewall Config Logs to Forward to Panorama, Syslog, SNMP, or eMail.
+	BP04011(ip, apikey)
+	BP04012(ip, apikey)
+	BP04013(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -2185,9 +2139,6 @@ def BPMGPan(ip, apikey):
 	BP01009(ip, apikey)
 	BP01010(ip, apikey)
 	BP01011(ip, apikey)
-	BP01012(ip, apikey)
-	BP01013(ip, apikey)
-	BP01014(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
 	BP01017(ip, apikey)
@@ -2202,10 +2153,9 @@ def BPMGPan(ip, apikey):
 	BP04008(ip, apikey)
 	BP04009(ip, apikey)
 	BP04010(ip, apikey)
-	
-
-
-
+	BP04011(ip, apikey)
+	BP04012(ip, apikey)
+	BP04013(ip, apikey)
 	
 def	BPTool():
 	with open(fwinfo, 'r+') as csvfile:
