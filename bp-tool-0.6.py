@@ -516,7 +516,70 @@ def BP01011(ip, apikey):
 			
 	time.sleep(sleeptime)
 			
-
+def BP01012(ip, apikey):
+	bpnum = "BP01012"
+	title = "Forbid the use of password profiles."
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	xpath = "/config/mgt-config/users"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	rresp = ET.fromstring(rrule.content)
+		
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/users/entry'):
+		username = entryElement.attrib['name']
+		passprofile = entryElement.find('password-profile')
+		if passprofile is None:
+			continue
+		elif passprofile.text:
+			status = "Fail"
+			mesg = "Password Profile %s is configured for user %s" % (username, passprofile.text)	
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
+	
+def BP01013(ip, apikey):
+	bpnum = "BP01013"
+	title = "Adjust Max Rows in CSV and User Activity Reports to 1048576"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	rresp = ET.fromstring(rrule.content)
+		
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/setting/management'):
+		csvExport = entryElement.find('max-rows-in-csv-export')
+		pdfReport = entryElement.find('max-rows-in-pdf-report')
+		if csvExport is None:
+			status = "Fail"
+			mesg = "Max CSV export rows is set to default"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif csvExport.text == '1048576':
+			status = "Pass"
+			mesg = "Max CSV export rows is set to %s" % csvExport.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "Max CSV export rows is set to %s" % csvExport.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+		if pdfReport is None:
+			status = "Fail"
+			mesg = "Max PDF Report rows is set to default"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif pdfReport.text == '1048576':
+			status = "Pass"
+			mesg = "Max PDF Report rows is set to %s" % pdfReport.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		else:
+			status = "Fail"
+			mesg = "Max PDF Report rows is set to %s" % pdfReport.text
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
 
 def BP01015(ip, apikey):
 	bpnum = "BP01015"
@@ -951,7 +1014,26 @@ def BP01017(ip, apikey):
 							
 	time.sleep(sleeptime)
 
-						
+def BP01018(ip, apikey):
+	bpnum = "BP01018"
+	title = "Validate that the default Admin password has been changed."
+	priority = "Medium"
+	print "Running Rule %s - %s" % (bpnum, title)
+	xpath = "/config/mgt-config/users"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/users/entry"):
+		username = entryElement.attrib['name']
+		phashElement = entryElement.find('phash')
+		if phashElement.text == 'fnRL/G5lXVMug':
+			status = "Fail"
+			mesg = "Default password 'admin' configured on account %s" % username
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
+	
 #-------Rule Definitions------
 #----Rule 04000 - 07999: Firewall Specific Rules
 def BP04000(ip, apikey):
@@ -1574,6 +1656,196 @@ def BP04013(ip, apikey):
 				
 	time.sleep(sleeptime)
 	
+def BP04014(ip, apikey):
+	bpnum = "BP04014"
+	title = "Require a fully-synchronized High Availability peer"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	xpath = "<show><high-availability><state></state></high-availability></show>"
+	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	rresp = ET.fromstring(rrule.content)
+		
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/group'):
+		configSync = entryElement.find('running-sync')
+		if configSync is None:
+			continue
+		elif configSync.text == 'not synchronized':
+			status = "Fail"
+			mesg = "Running Config is Not Synced to Peer on %s" % ip
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif configSync.text == 'synchronized':
+			status = "Pass"
+			mesg = "Running Config is Synced to Peer on %s" % ip
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
+	
+def BP04015(ip, apikey):	
+	bpnum = "BP04015"
+	title = "For High Availability, require Link Monitoring, Path Monitoring, or both"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	xpath = "<show><high-availability><all></all></high-availability></show>"
+	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	rresp = ET.fromstring(rrule.content)
+		
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/group'):
+		linkMonitor = entryElement.find('link-monitoring/enabled')
+		pathMonitor = entryElement.find('path-monitoring/enabled')
+		if linkMonitor or pathMonitor is None:
+			continue
+		elif linkMonitor.text == 'no' and pathMonitor.text == 'no':
+			status = "Fail"
+			mesg = "Path Monitoring and Link Monitoring not configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif linkMonitor.text == 'yes' and pathMonitor.text == 'yes':
+			status = "Pass"
+			mesg = "Path Monitoring and Link Monitoring are configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif linkMonitor.text == 'yes':
+			status = "Pass"
+			mesg = "Link Monitoring is Configured"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif pathMonitor.text == 'yes':
+			status = "Pass"
+			mesg = "Path Monitoring is Configured"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	time.sleep(sleeptime)
+	
+def BP04016(ip, apikey):
+	bpnum = "BP04016"
+	title = "Forbid simultaneously enabling the Preemptive option, and configuring the Passive Link State to shutdown simultaneously."
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	xpath = "<show><high-availability><all></all></high-availability></show>"
+	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	rresp = ET.fromstring(rrule.content)
+		
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall('./result/group'):
+		localLinkState = entryElement.find('local-info/active-passive/passive-link-state')
+		localPreempt = entryElement.find('local-info/preemptive')
+		if localLinkState or localPreempt is None:
+			continue
+		elif localLinkState.text == 'shutdown' and localPreempt.text == 'yes':
+			status = "Fail"
+			mesg = "Link State should not be shutdown with Preemptive Enabled."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif localLinkState.text == 'auto' and localPreempt.text == 'yes':
+			status = "Pass"
+			mesg = "Link State set to Auto with Preemptive Enabled."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			
+	time.sleep(sleeptime)
+
+def BP04017(ip, apikey):
+	bpnum = "BP04017"
+	title = "Require IP-to-username mapping for user traffic"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Management Profile
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/vsys/entry"):
+		vsys = entryElement.attrib['name']
+		uida = entryElement.find('user-id-agent')
+		uidc = entryElement.find('user-id-collector')
+		tsagent = entryElement.find('ts-agent')
+		if uida is None and uidc is None and tsagent is None:
+			status = "Informational"
+			mesg = "User-ID is not configured on this firewall."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		if uida:
+			status = "Pass"
+			mesg = "User-ID Agent Server configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			for uidaElement in entryElement.findall('user-id-agent/entry'):
+				profile = uidaElement.attrib['name']
+				host = uidaElement.find('host')
+				port = uidaElement.find('port')
+				status = "Informational"
+				mesg = "User-ID Agent Server %s is configured on host %s:%s" % (profile, host.text, port.text)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+		if uidc:
+			status = "Pass"
+			mesg = "Internal User-ID Agent configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			for uidcElement in entryElement.findall('user-id-collector/server-monitor/entry'):
+				profile = uidcElement.attrib['name']
+				ad = uidcElement.find('active-directory')
+				adhost = uidcElement.find('active-directory/host')
+				ex = uidcElement.find('exchange')
+				exhost = uidcElement.find('exchange/host')
+				sys = uidcElement.find('syslog')
+				syshost = uidcElement.find('syslog/address')
+				edir = uidcElement.find('e-directory')
+				edirprof = uidcElement.find('e-directory/server-profile')
+				if not ad is None:
+					status = "Informational"
+					mesg = "Active Directory Profile %s is configured for server %s" % (profile, adhost.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				if not ex is None:
+					status = "Informational"
+					mesg = "Exchange Profile %s is configured for server %s" % (profile, exhost.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				if not sys is None:
+					status = "Informational"
+					mesg = "Syslog Sender %s is configured for server %s" % (profile, syshost.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				if not edir is None:
+					status = "Informational"
+					mesg = "Novell e-directory profile %s is configured for LDAP server profile %s" % (profile, edirprof.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+			for wmiElement in entryElement.findall('user-id-collector/setting'):
+				wmiAccount = wmiElement.find('wmi-account')
+				status = "Informational"
+				mesg = "WMI Service Account in Use is %s" % wmiAccount.text
+				ws.append([ip, bpnum, title, priority, status, mesg])
+		if tsagent:
+			status = "Pass"
+			mesg = "Terminal Server Agent configured"
+			ws.append([ip, bpnum, title, priority, status, mesg])
+			for tsElement in entryElement.findall('ts-agent/entry'):
+				profile = tsElement.attrib['name']
+				host = tsElement.find('host')
+				port = tsElement.find('port')
+				status = "Informational"
+				mesg = "Terminal Server Agent Profile %s configured for host %s:%s" % (profile, host.text, port.text)
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)
+	
+def BP04018(ip, apikey):
+	bpnum = "BP04018"
+	title = "Disable WMI probing if not required."
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Management Profile
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/vsys/entry"):
+		vsys = entryElement.attrib['name']
+		for probeElement in entryElement.findall('user-id-collector/setting'):
+			probeEnabled = probeElement.find('enable-probing')
+			if not probeEnabled is None:
+				status = "Informational"
+				mesg = "WMI Probing is Enabled"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)
+				
 #-------Rule Definitions------
 #----Rule 08000 - 9999: Panorama Platform Specific Rules
 def BP08000(ip, apikey):
@@ -2082,9 +2354,11 @@ def BPPanorama(ip, apikey):
 	BP01009(ip, apikey)  #  Configure the firewall to use redundant NTP Servers
 	BP01010(ip, apikey)  #  Limit management interface traffic to ping and secure protocols only
 	BP01011(ip, apikey)  #  Limit permitted IP Addresses to those necessary for device management
+	BP01012(ip, apikey)
 	BP01015(ip, apikey)  #  Configure minimum password complexity profile 
 	BP01016(ip, apikey)  #  Ensure that Firewall Dynamic Updates are Processing
 	BP01017(ip, apikey)  #  Ensure that Dynamic Update Times are Configured Properly
+	BP01018(ip, apikey)
 	BP08000(ip, apikey)  #  Panorama Platform eTAC Recommended Versions of Code
 	BP08001(ip, apikey)  #  Panorama Platform Should Use RADIUS for User Authentication
 	BP08002(ip, apikey)  #  Panorama Platform Define Syslog Servers
@@ -2108,9 +2382,11 @@ def BPUmgPan(ip, apikey):
 	BP01009(ip, apikey)
 	BP01010(ip, apikey)
 	BP01011(ip, apikey)
+	BP01012(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
 	BP01017(ip, apikey)
+	BP01018(ip, apikey)
 	BP04000(ip, apikey)  #  Firewall Should Use Descriptive Rule Names
 	BP04001(ip, apikey)  #  Firewall eTAC Recommended Versions of Code
 	BP04002(ip, apikey)  #  Firewall Should Use RADIUS for User Authentication
@@ -2125,6 +2401,11 @@ def BPUmgPan(ip, apikey):
 	BP04011(ip, apikey)
 	BP04012(ip, apikey)
 	BP04013(ip, apikey)
+	BP04014(ip, apikey)
+	BP04015(ip, apikey)
+	BP04016(ip, apikey)
+	BP04017(ip, apikey)
+	BP04018(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -2139,9 +2420,11 @@ def BPMGPan(ip, apikey):
 	BP01009(ip, apikey)
 	BP01010(ip, apikey)
 	BP01011(ip, apikey)
+	BP01012(ip, apikey)
 	BP01015(ip, apikey)
 	BP01016(ip, apikey)
 	BP01017(ip, apikey)
+	BP01018(ip, apikey)
 	BP04000(ip, apikey)
 	BP04001(ip, apikey)
 	BP04002(ip, apikey)
@@ -2156,6 +2439,11 @@ def BPMGPan(ip, apikey):
 	BP04011(ip, apikey)
 	BP04012(ip, apikey)
 	BP04013(ip, apikey)
+	BP04014(ip, apikey)
+	BP04015(ip, apikey)
+	BP04016(ip, apikey)
+	BP04017(ip, apikey)
+	BP04018(ip, apikey)
 	
 def	BPTool():
 	with open(fwinfo, 'r+') as csvfile:
