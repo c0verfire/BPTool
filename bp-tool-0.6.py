@@ -1845,6 +1845,151 @@ def BP04018(ip, apikey):
 				ws.append([ip, bpnum, title, priority, status, mesg])
 
 	time.sleep(sleeptime)
+	
+def BP04019(ip, apikey):
+	bpnum = "BP04019"
+	title = "Forbid User-ID on external and other non-trusted zones"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Interface Management Profile
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/network"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	# Query for Interface Information
+	xpath2 = "/config/devices/entry[@name='localhost.localdomain']/vsys"
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	responseElement2 = ET.fromstring(rrule2.text)
+	for entryElement in responseElement.findall("./result/network"):
+		for profileElement in entryElement.findall('profiles/interface-management-profile/entry'):
+			profile = profileElement.attrib['name']
+			uid = profileElement.find('userid-service')
+			uidssl = profileElement.find('userid-syslog-listener-ssl')
+			uidudp = profileElement.find('userid-syslog-listener-udp')
+			uidprof = []
+			if not uid is None or not uidssl is None or not uidudp is None:
+				uidprof.append(profile)
+				for a in uidprof:
+					status = "Informational"
+					mesg = "Profile %s is configured for User-ID Services" % a
+					ws.append([ip, bpnum, title, priority, status, mesg])
+
+		for intfElement in entryElement.findall('interface/ethernet/entry'):
+			intfprof = {}
+			interface = intfElement.attrib['name']
+			mgmtprofElement = intfElement.find('layer3/interface-management-profile')					
+			if not mgmtprofElement is None and not interface in intfprof:
+				intfprof[interface] = mgmtprofElement.text
+				for interface, mgmtprofElement in intfprof.iteritems():
+					status = "Informational"
+					mesg = "User-ID Management Profile %s is applied to interface %s" % (mgmtprofElement, interface)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)
+
+def BP04020(ip, apikey):
+	bpnum = "BP04020"
+	title = "Require the use of User-ID Include-Exclude Networks section, if User-ID is enabled."
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Management Profile
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	
+	responseElement = ET.fromstring(rrule.text)
+	for entryElement in responseElement.findall("./result/vsys/entry"):
+		vsys = entryElement.attrib['name']
+		uida = entryElement.find('user-id-agent')
+		uidc = entryElement.find('user-id-collector')
+		tsagent = entryElement.find('ts-agent')
+		if uida is None and uidc is None and tsagent is None:
+			continue
+		if uida or uidc or tsagent:
+			for useridElement in entryElement.findall('user-id-collector'):
+				network = useridElement.find('include-exclude-network')
+				if network is None:
+					status = "Fail"
+					mesg = "Network Include/Exclude not configured for system with User-ID enabled."
+					ws.append([ip, bpnum, title, priority, status, mesg])
+				else:
+					for networkElement in useridElement.findall('include-exclude-network/entry'):
+						entryname = networkElement.attrib['name']
+						discovery = networkElement.find('discovery')
+						network = networkElement.find('network-address')
+						if re.match("(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^192\.168\.)", network.text):
+							status = "Pass"
+							mesg = "User-ID Include/Exclude configured for %s network %s" % (discovery.text, network.text)
+							ws.append([ip, bpnum, title, priority, status, mesg])
+						else:
+							status = "Informational"
+							mesg = "User-ID Include/Exclude configured for %s network %s" % (discovery.text, network.text)
+							ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)
+	
+def BP04021(ip, apikey):
+	bpnum = "BP04021"
+	title = "Require default Log Forwarding Profile, this will be added automatically to all new Security Policies"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Local System Configuration
+	xpath = '/config/shared'
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	responseElement = ET.fromstring(rrule.text)
+	# Query for Panorama Configuration
+	xpath2 = '/config/panorama'
+	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
+	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
+	responseElement2 = ET.fromstring(rrule2.text)
+	
+	#Parse for Local System Configuration
+	for entryElement in responseElement.findall('./result/shared/log-settings'):
+		profiles = entryElement.find('profiles')
+		defprof = []
+		if profiles is None:
+			status = "Informational"
+			mesg = "No Local Log Forwarding Profile is Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif profiles:
+			for profileElement in entryElement.findall('profiles/entry'):
+				name = profileElement.attrib['name']
+				defprof.append(name)
+			if 'default' not in defprof:
+				status = "Fail"
+				mesg = "Default Log Forwarding Profile is Not Configured on the Local System."
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			else:
+				status = "Pass"
+				mesg = "Default Log Forwarding Profile is Configured on the Local System."
+				ws.append([ip, bpnum, title, priority, status, mesg])
+				
+	#Parse for Panorama Pushed Configuration
+	for entryElement in responseElement2.findall('./result/panorama/vsys/entry'):
+		vsys = entryElement.attrib['name']
+		profiles = entryElement.find('log-settings/profiles')
+		defprof = []
+		if profiles is None:
+			status = "Informational"
+			mesg = "No Panorama Log Forwarding Profile is Configured."
+			ws.append([ip, bpnum, title, priority, status, mesg])
+		elif profiles:
+			for profileElement in entryElement.findall('log-settings/profiles/entry'):
+				name = profileElement.attrib['name']
+				defprof.append(name)
+			if 'default' not in defprof:
+				status = "Fail"
+				mesg = "Default Log Forwarding Profile is Not pushed via Panorama Config."
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			else:
+				status = "Pass"
+				mesg = "Default Log Forwarding Profile is pushed via Panorama Config."
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)
 				
 #-------Rule Definitions------
 #----Rule 08000 - 9999: Panorama Platform Specific Rules
@@ -2406,6 +2551,9 @@ def BPUmgPan(ip, apikey):
 	BP04016(ip, apikey)
 	BP04017(ip, apikey)
 	BP04018(ip, apikey)
+	BP04019(ip, apikey)
+	BP04020(ip, apikey)
+	BP04021(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -2444,6 +2592,9 @@ def BPMGPan(ip, apikey):
 	BP04016(ip, apikey)
 	BP04017(ip, apikey)
 	BP04018(ip, apikey)
+	BP04019(ip, apikey)
+	BP04020(ip, apikey)
+	BP04021(ip, apikey)
 	
 def	BPTool():
 	with open(fwinfo, 'r+') as csvfile:
