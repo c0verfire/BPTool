@@ -1027,6 +1027,8 @@ def BP01018(ip, apikey):
 	for entryElement in responseElement.findall("./result/users/entry"):
 		username = entryElement.attrib['name']
 		phashElement = entryElement.find('phash')
+		if phashElement is None:
+			continue
 		if phashElement.text == 'fnRL/G5lXVMug':
 			status = "Fail"
 			mesg = "Default password 'admin' configured on account %s" % username
@@ -1855,13 +1857,14 @@ def BP04019(ip, apikey):
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/network"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	responseElement = ET.fromstring(rrule.text)
 	# Query for Interface Information
 	xpath2 = "/config/devices/entry[@name='localhost.localdomain']/vsys"
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
-	
-	responseElement = ET.fromstring(rrule.text)
 	responseElement2 = ET.fromstring(rrule2.text)
+	
+	# Pull Management Profiles and Associated Interfaces
 	for entryElement in responseElement.findall("./result/network"):
 		for profileElement in entryElement.findall('profiles/interface-management-profile/entry'):
 			profile = profileElement.attrib['name']
@@ -1869,23 +1872,39 @@ def BP04019(ip, apikey):
 			uidssl = profileElement.find('userid-syslog-listener-ssl')
 			uidudp = profileElement.find('userid-syslog-listener-udp')
 			uidprof = []
-			if not uid is None or not uidssl is None or not uidudp is None:
+			if uid is None or uidssl is None or uidudp is None:
+				continue
+			elif uid.text == 'yes' or uidssl.text == 'yes' or uidudp.text == 'yes':
 				uidprof.append(profile)
 				for a in uidprof:
 					status = "Informational"
 					mesg = "Profile %s is configured for User-ID Services" % a
 					ws.append([ip, bpnum, title, priority, status, mesg])
 
-		for intfElement in entryElement.findall('interface/ethernet/entry'):
-			intfprof = {}
-			interface = intfElement.attrib['name']
-			mgmtprofElement = intfElement.find('layer3/interface-management-profile')					
-			if not mgmtprofElement is None and not interface in intfprof:
-				intfprof[interface] = mgmtprofElement.text
-				for interface, mgmtprofElement in intfprof.iteritems():
-					status = "Informational"
-					mesg = "User-ID Management Profile %s is applied to interface %s" % (mgmtprofElement, interface)
-					ws.append([ip, bpnum, title, priority, status, mesg])
+			for intfElement in entryElement.findall('interface/ethernet/entry'):
+				intfprof = {}
+				interface = intfElement.attrib['name']
+				mgmtprofElement = intfElement.find('layer3/interface-management-profile')					
+				if not mgmtprofElement is None and not interface in intfprof:
+					intfprof[interface] = mgmtprofElement.text
+					for interface, mgmtprofElement in intfprof.iteritems():
+						if mgmtprofElement in uidprof:
+							status = "Informational"
+							mesg = "User-ID Management Profile %s is applied to interface %s" % (mgmtprofElement, interface)
+							ws.append([ip, bpnum, title, priority, status, mesg])
+	
+	# Pull User Identification Enabled Zones
+	for entryElement in responseElement2.findall("./result/vsys/entry"):
+		vsys = entryElement.attrib['name']
+		for zoneElement in entryElement.findall('zone/entry'):
+			zone = zoneElement.attrib['name']
+			uid = zoneElement.find('enable-user-identification')
+			if uid is None:
+				break
+			elif uid.text == 'yes':
+				status = "Informational"
+				mesg = "User-ID Services are enabled for Zone %s" % zone
+				ws.append([ip, bpnum, title, priority, status, mesg])
 
 	time.sleep(sleeptime)
 
