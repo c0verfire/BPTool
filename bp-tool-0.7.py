@@ -1072,7 +1072,7 @@ def BP04001(ip, apikey):
 	responseElement = ET.fromstring(rrule.text)
 	for entryElement in responseElement.findall("./result/system"):
 		version = entryElement.find('sw-version')
-		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.2" or version.text == "6.1.3" or version.text == "6.1.4":
+		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.4" or version.text == "6.1.5":
 			status = "Pass"
 			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
@@ -2280,7 +2280,7 @@ def BP04025(ip, apikey):
 			mesg = "Forwarding of SSL Decrypted Content is Disabled"
 			ws.append([ip, bpnum, title, priority, status, mesg])
 		for settingElement in entryElement.findall('setting'):
-			fwddecrypt = sslElement.find('ssl-decrypt/allow-forward-decrypted-content')
+			fwddecrypt = settingElement.find('ssl-decrypt/allow-forward-decrypted-content')
 			if fwddecrypt is None or fwddecrypt.text == 'no':
 				status = "Fail"
 				mesg = "Forwarding of SSL Decrypted Content is Disabled"
@@ -2307,7 +2307,7 @@ def BP08000(ip, apikey):
 	responseElement = ET.fromstring(rrule.text)
 	for entryElement in responseElement.findall("./result/system"):
 		version = entryElement.find('sw-version')
-		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.2" or version.text == "6.1.3" or version.text == "6.1.4":
+		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.4" or version.text == "6.1.5":
 			status = "Pass"
 			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
