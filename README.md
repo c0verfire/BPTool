@@ -1,4 +1,4 @@
-# bp-tool-0.7(Dublin)
+# bp-tool-0.7(Evergreen)
 
 The Palo Alto Best Practices Tool is a script that is used to assess Best Practice Configurations on Palo Alto Firewalls.
 
