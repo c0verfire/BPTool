@@ -5,11 +5,6 @@ from sys import argv
 import os
 import csv
 import requests
-import re
-from openpyxl.workbook import Workbook
-from openpyxl.worksheet import filters
-from openpyxl.styles import Font, Fill, Color, PatternFill
-from openpyxl.formatting import FormulaRule, CellIsRule
 import time
 import datetime
 from datetime import date
@@ -2009,289 +2004,7 @@ def BP04021(ip, apikey):
 				ws.append([ip, bpnum, title, priority, status, mesg])
 
 	time.sleep(sleeptime)
-	
-def BP04022(ip, apikey):
-	bpnum = "BP04022"
-	title = "Increase WildFire file size upload limits"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Local System Configuration
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
-		
-	#Parse for Local System Configuration
-	for entryElement in responseElement.findall('./result/setting'):
-		wildfire = entryElement.find('wildfire')
-		fivelimit = entryElement.find('wildfire/file-size-limit')
-		if wildfire is None:
-			status = "Fail"
-			mesg = "Wildfire file upload sizes are set for the default."
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		
-		if fivelimit is None or fivelimit.text is None:
-			pass
-		elif fivelimit.text == '10':
-			status = "Pass"
-			mesg = "PANOS 5.0 Wildfire file size limit set to maximum of 10 MB"
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		elif fivelimit.text != '10':
-			status = "Fail"
-			mesg = "PANOS 5.0 Wildfire file size limit set to %s" % fivelimit.text
-			ws.append([ip, bpnum, title, priority, status, mesg])
-			
-		for sixonefileSize in entryElement.findall('wildfire/file-size-limit/entry'):
-			filetype = sixonefileSize.attrib['name']
-			sizelimit = sixonefileSize.find('size-limit')
-			if filetype == 'flash' and sizelimit.text == '10':
-				status = "Pass"
-				mesg = "Flash file type maximum upload size is set to 10 MB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif filetype == 'flash' and sizelimit.text != '10':
-				status = "Fail"
-				mesg = "Flash file type should be set to 10 MB, currently set to %s" % sizelimit.text
-				ws.append([ip, bpnum, title, priority, status, mesg])
 				
-			if filetype == 'apk' and sizelimit.text == '50':
-				status = "Pass"
-				mesg = "APK file type maximum upload size is set to 50 MB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif filetype == 'apk' and sizelimit.text != '50':
-				status = "Fail"
-				mesg = "APK file type should be set to 50 MB, currently set to %s" % sizelimit.text
-				ws.append([ip, bpnum, title, priority, status, mesg])
-				
-			if filetype == 'pdf' and sizelimit.text == '1000':
-				status = "Pass"
-				mesg = "PDF file type maximum upload size is set to 1000 KB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif filetype == 'pdf' and sizelimit.text != '1000':
-				status = "Fail"
-				mesg = "PDF file type should be set to 1000 KB, currently set to %s" % sizelimit.text
-				ws.append([ip, bpnum, title, priority, status, mesg])
-				
-			if filetype == 'jar' and sizelimit.text == '10':
-				status = "Pass"
-				mesg = "JAR file type maximum upload size is set to 10 MB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif filetype == 'jar' and sizelimit.text != '10':
-				status = "Fail"
-				mesg = "JAR file type should be set to 10 MB, currently set to %s" % sizelimit.text
-				ws.append([ip, bpnum, title, priority, status, mesg])
-				
-			if filetype == 'pe' and sizelimit.text == '10':
-				status = "Pass"
-				mesg = "PE file type maximum upload size is set to 10 MB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif filetype == 'pe' and sizelimit.text != '10':
-				status = "Fail"
-				mesg = "PE file type should be set to 10 MB, currently set to %s" % sizelimit.text
-				ws.append([ip, bpnum, title, priority, status, mesg])	
-				
-			if filetype == 'ms-office' and sizelimit.text == '10000':
-				status = "Pass"
-				mesg = "MS Office file type maximum upload size is set to 10000 KB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif filetype == 'ms-office' and sizelimit.text != '10000':
-				status = "Fail"
-				mesg = "MS Office file type should be set to 10000 KB, currently set to %s" % sizelimit.text
-				ws.append([ip, bpnum, title, priority, status, mesg])	
-
-		for sixohfileSize in entryElement.findall('wildfire/file-size-limit'):
-			jar = sixohfileSize.find('jar')
-			pe = sixohfileSize.find('pe')
-			apk = sixohfileSize.find('apk')
-			msoffice = sixohfileSize.find('ms-office')
-			pdf = sixohfileSize.find('pdf')
-			if apk is None:
-				pass
-			elif apk.text == '50':
-				status = "Pass"
-				mesg = "APK file type maximum upload size is set to 50 MB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif apk.text != '50':
-				status = "Fail"
-				mesg = "APK file type should be set to 50 MB, currently set to %s" % apk.text
-				ws.append([ip, bpnum, title, priority, status, mesg])
-				
-			if pdf is None:
-				pass
-			elif pdf.text == '1000':
-				status = "Pass"
-				mesg = "PDF file type maximum upload size is set to 1000 KB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif pdf.text != '1000':
-				status = "Fail"
-				mesg = "PDF file type should be set to 1000 KB, currently set to %s" % pdf.text
-				ws.append([ip, bpnum, title, priority, status, mesg])
-				
-			if jar is None:
-				pass
-			elif jar.text == '10':
-				status = "Pass"
-				mesg = "JAR file type maximum upload size is set to 10 MB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif jar.text != '10':
-				status = "Fail"
-				mesg = "JAR file type should be set to 10 MB, currently set to %s" % jar.text
-				ws.append([ip, bpnum, title, priority, status, mesg])
-				
-			if pe is None:
-				pass
-			elif pe.text == '10':
-				status = "Pass"
-				mesg = "PE file type maximum upload size is set to 10 MB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif pe.text != '10':
-				status = "Fail"
-				mesg = "PE file type should be set to 10 MB, currently set to %s" % pe.text
-				ws.append([ip, bpnum, title, priority, status, mesg])	
-				
-			if msoffice is None:
-				pass
-			elif msoffice.text == '10000':
-				status = "Pass"
-				mesg = "MS Office file type maximum upload size is set to 10000 KB"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif msoffice.text != '10000':
-				status = "Fail"
-				mesg = "MS Office file type should be set to 10000 KB, currently set to %s" % msoffice.text
-				ws.append([ip, bpnum, title, priority, status, mesg])
-
-	time.sleep(sleeptime)
-	
-def BP04023(ip, apikey):
-	bpnum = "BP04023"
-	title = "Require WildFire File Blocking profiles to include any application, any file type, and action set to forward"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Local System Configuration
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
-	# Query for Panorama Configuration
-	xpath2 = "/config/panorama"
-	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
-	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
-	responseElement2 = ET.fromstring(rrule2.text)
-	
-	#Parse for Local System Configuration
-	for entryElement in responseElement.findall('./result/vsys/entry'):
-		vsys = entryElement.attrib['name']
-		for fbprofElement in entryElement.findall('profiles/file-blocking/entry'):
-			fbprofile = fbprofElement.attrib['name']
-			for fbruleElement in fbprofElement.findall('rules/entry'):
-				fbrule = fbruleElement.attrib['name']
-				fbaction = fbruleElement.find('action')
-				for appElement in fbruleElement.findall('application'):
-					app = appElement.find('member')
-				for typeElement in fbruleElement.findall('file-type'):
-					filetype = typeElement.find('member')
-					if fbaction.text == 'forward' and app.text == 'any' and filetype.text == 'any':
-						status = "Pass"
-						mesg = "File Blocking Profile '%s',rule '%s' is configured with Action forward and App and Filetype of Any" % (fbprofile, fbrule)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-					elif fbaction.text == 'forward' and (app.text != 'any' or filetype.text != 'any'):
-						status = "Fail"
-						mesg = "File Blocking Profile '%s', rule '%s' is configured with Action forward and custom App or Filetype" % (fbprofile, fbrule)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-						
-	for entryElement in responseElement.findall('./result/vsys/entry'):
-		vsys = entryElement.attrib['name']
-		for fbprofElement in entryElement.findall('profiles/wildfire-analysis/entry'):
-			fbprofile = fbprofElement.attrib['name']
-			for fbruleElement in fbprofElement.findall('rules/entry'):
-				fbrule = fbruleElement.attrib['name']
-				for appElement in fbruleElement.findall('application'):
-					app = appElement.find('member')
-				for typeElement in fbruleElement.findall('file-type'):
-					filetype = typeElement.find('member')
-					if app.text == 'any' and filetype.text == 'any':
-						status = "Pass"
-						mesg = "Wildfire Analysis Profile '%s',rule '%s' is configured with App and Filetype of Any" % (fbprofile, fbrule)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-					elif app.text != 'any' or filetype.text != 'any':
-						status = "Fail"
-						mesg = "Wildfire Analysis Profile '%s', rule '%s' is configured with custom App or Filetype" % (fbprofile, fbrule)
-						ws.append([ip, bpnum, title, priority, status, mesg])	
-					
-					
-	#Parse for Panorama Defined Configuration
-	for entryElement in responseElement2.findall('./result/panorama/vsys/entry'):
-		vsys = entryElement.attrib['name']
-		for fbprofElement in entryElement.findall('profiles/file-blocking/entry'):
-			fbprofile = fbprofElement.attrib['name']
-			for fbruleElement in fbprofElement.findall('rules/entry'):
-				fbrule = fbruleElement.attrib['name']
-				fbaction = fbruleElement.find('action')
-				for appElement in fbruleElement.findall('application'):
-					app = appElement.find('member')
-				for typeElement in fbruleElement.findall('file-type'):
-					filetype = typeElement.find('member')
-					if fbaction.text == 'forward' and app.text == 'any' and filetype.text == 'any':
-						status = "Pass"
-						mesg = "File Blocking Profile '%s',rule '%s' is configured with Action forward and App and Filetype of Any" % (fbprofile, fbrule)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-					elif fbaction.text == 'forward' and (app.text != 'any' or filetype.text != 'any'):
-						status = "Fail"
-						mesg = "File Blocking Profile '%s', rule '%s' is configured with Action forward and custom App or Filetype" % (fbprofile, fbrule)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-						
-	for entryElement in responseElement2.findall('./result/panorama/vsys/entry'):
-		vsys = entryElement.attrib['name']
-		for fbprofElement in entryElement.findall('profiles/wildfire-analysis/entry'):
-			fbprofile = fbprofElement.attrib['name']
-			for fbruleElement in fbprofElement.findall('rules/entry'):
-				fbrule = fbruleElement.attrib['name']
-				for appElement in fbruleElement.findall('application'):
-					app = appElement.find('member')
-				for typeElement in fbruleElement.findall('file-type'):
-					filetype = typeElement.find('member')
-					if app.text == 'any' and filetype.text == 'any':
-						status = "Pass"
-						mesg = "Wildfire Analysis Profile '%s',rule '%s' is configured with App and Filetype of Any" % (fbprofile, fbrule)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-					elif app.text != 'any' or filetype.text != 'any':
-						status = "Fail"
-						mesg = "Wildfire Analysis Profile '%s', rule '%s' is configured with custom App or Filetype" % (fbprofile, fbrule)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-
-	time.sleep(sleeptime)
-
-def BP04025(ip, apikey):
-	bpnum = "BP04025"
-	title = "Require forwarding of decrypted content"
-	priority = "Low"
-	print "Running Rule %s - %s" % (bpnum, title)
-	# Query for Local System Configuration
-	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
-	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
-	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
-	
-	#Parse for Local System Configuration
-	for entryElement in responseElement.findall('./result/vsys/entry'):
-		vsys = entryElement.attrib['name']
-		check = entryElement.find('setting')
-		if check is None:
-			status = "Fail"
-			mesg = "Forwarding of SSL Decrypted Content is Disabled"
-			ws.append([ip, bpnum, title, priority, status, mesg])
-		for settingElement in entryElement.findall('setting'):
-			fwddecrypt = sslElement.find('ssl-decrypt/allow-forward-decrypted-content')
-			if fwddecrypt is None or fwddecrypt.text == 'no':
-				status = "Fail"
-				mesg = "Forwarding of SSL Decrypted Content is Disabled"
-				ws.append([ip, bpnum, title, priority, status, mesg])
-			elif fwddecrypt.text == 'yes':
-				status = "Pass"
-				mesg = "Forwarding of SSL Decrypted Content is Enabled."
-				ws.append([ip, bpnum, title, priority, status, mesg])
-
-	time.sleep(sleeptime)
-	
 #-------Rule Definitions------
 #----Rule 08000 - 9999: Panorama Platform Specific Rules
 def BP08000(ip, apikey):
@@ -2652,7 +2365,7 @@ def BP10000(ip, apikey):
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
 
-	responseElement = ET.fromstring(rrule.content)
+	responseElement = ET.fromstring(rrule.text)
 	for entryElement in responseElement.findall("./result/device-group/entry"):
 		devgrp = entryElement.attrib['name']
 		for secruleElement in entryElement.findall('pre-rulebase/security/rules/entry'):
@@ -2668,7 +2381,7 @@ def BP10000(ip, apikey):
 				mesg = "Post-Rule %s in %s is using a default rule name" % (rule, devgrp)
 				ws.append([ip, bpnum, title, priority, status, mesg])
 	
-	responseElement2 = ET.fromstring(rrule2.content)
+	responseElement2 = ET.fromstring(rrule2.text)
 	for entryElement in responseElement2.findall("./result/shared/pre-rulebase/security/rules/entry"):
 		rule = entryElement.attrib['name']
 		if re.match("shared-pre-rule\d", rule):
@@ -2698,7 +2411,7 @@ def BP10001(ip, apikey):
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
 
-	responseElement = ET.fromstring(rrule.content)
+	responseElement = ET.fromstring(rrule.text)
 	for entryElement in responseElement.findall('./result/device-group/entry'):
 		devgrp = entryElement.attrib['name']
 		## Check Device Group Pre-Rulebase for Invalid Mask in rule
@@ -2706,17 +2419,13 @@ def BP10001(ip, apikey):
 			rule = secruleElement.attrib['name']
 			for srcaddrElement in secruleElement.findall('source'):
 				srcaddr = srcaddrElement.find('member')
-				if srcaddr is None:
-					continue
-				elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
 					status = "Fail"
 					mesg = "Invalid Subnet Mask %s found in Device Group '%s' Rule '%s'" % (srcaddr.text, devgrp, rule)
 					ws.append([ip, bpnum, title, priority, status, mesg])
 			for dstaddrElement in secruleElement.findall('destination'):
 				dstaddr = dstaddrElement.find('member')
-				if dstaddr is None:
-					continue
-				elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
 					status = "Fail"
 					mesg = "Invalid Subnet Mask %s found in Device Group '%s' Rule '%s'" % (dstaddr.text, devgrp, rule)
 					ws.append([ip, bpnum, title, priority, status, mesg])
@@ -2725,17 +2434,13 @@ def BP10001(ip, apikey):
 			rule = secruleElement.attrib['name']
 			for srcaddrElement in secruleElement.findall('source'):
 				for srcaddr in srcaddrElement.findall('member'):
-					if srcaddr is None:
-						continue
-					elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+					if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
 						status = "Fail"
 						mesg = "Invalid Subnet Mask %s found in Device Group '%s' Rule '%s'" % (srcaddr.text, devgrp, rule)
 						ws.append([ip, bpnum, title, priority, status, mesg])
 			for dstaddrElement in secruleElement.findall('destination'):
 				for dstaddr in dstaddrElement.findall('member'):
-					if dstaddr is None:
-						continue
-					elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+					if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
 						status = "Fail"
 						mesg = "Invalid Subnet Mask %s found in Device Group '%s' Rule '%s'" % (dstaddr.text, devgrp, rule)
 						ws.append([ip, bpnum, title, priority, status, mesg])
@@ -2744,32 +2449,26 @@ def BP10001(ip, apikey):
 		for devaddrElement in entryElement.findall('address/entry'):
 			address = devaddrElement.attrib['name']
 			ipmask = devaddrElement.find('ip-netmask')
-			if ipmask is None:
-				continue
-			elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
+			if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
 				status = "Fail"
 				mesg = "Invalid Subnet Mask %s found in Device Group '%s' Address Object '%s'" % (ipmask.text, devgrp, address)
 				ws.append([ip, bpnum, title, priority, status, mesg])
 			
 	
-	responseElement2 = ET.fromstring(rrule2.content)
+	responseElement2 = ET.fromstring(rrule2.text)
 	for entryElement in responseElement2.findall('./result/shared'):
 		## Check Shared Pre-Rulebase for Invalid Mask in rule
 		for secruleElement in entryElement.findall('pre-rulebase/security/rules/entry'):
 			rule = secruleElement.attrib['name']
 			for srcaddrElement in secruleElement.findall('source'):
 				srcaddr = srcaddrElement.find('member')
-				if srcaddr is None:
-					continue
-				elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
 					status = "Fail"
 					mesg = "Invalid Subnet Mask %s found in Shared Rule '%s'" % (srcaddr.text, rule)
 					ws.append([ip, bpnum, title, priority, status, mesg])
 			for dstaddrElement in secruleElement.findall('destination'):
 				dstaddr = dstaddrElement.find('member')
-				if dstaddr is None:
-					continue
-				elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+				if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
 					status = "Fail"
 					mesg = "Invalid Subnet Mask %s found in Shared Rule '%s'" % (dstaddr.text, rule)
 					ws.append([ip, bpnum, title, priority, status, mesg])
@@ -2778,17 +2477,13 @@ def BP10001(ip, apikey):
 			rule = secruleElement.attrib['name']
 			for srcaddrElement in secruleElement.findall('source'):
 				for srcaddr in srcaddrElement.findall('member'):
-					if srcaddr is None:
-						continue
-					elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
+					if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", srcaddr.text):
 						status = "Fail"
 						mesg = "Invalid Subnet Mask %s found in Shared Rule '%s'" % (srcaddr.text, rule)
 						ws.append([ip, bpnum, title, priority, status, mesg])
 			for dstaddrElement in secruleElement.findall('destination'):
 				for dstaddr in dstaddrElement.findall('member'):
-					if dstaddr is None:
-						continue
-					elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
+					if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", dstaddr.text):
 						status = "Fail"
 						mesg = "Invalid Subnet Mask %s found in Shared Rule '%s'" % (dstaddr.text, rule)
 						ws.append([ip, bpnum, title, priority, status, mesg])
@@ -2797,14 +2492,10 @@ def BP10001(ip, apikey):
 		for srdaddrElement in entryElement.findall('address/entry'):
 			address = srdaddrElement.attrib['name']
 			ipmask = srdaddrElement.find('ip-netmask')
-			if ipmask is None:
-				continue
-			elif re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
+			if re.match("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([1-7]{1})$", ipmask.text):
 				status = "Fail"
 				mesg = "Invalid Subnet Mask %s found in Shared Address Object '%s'" % (ipmask.text, address)
 				ws.append([ip, bpnum, title, priority, status, mesg])
-			
-	time.sleep(sleeptime)
 					
 	
 #-------Device Group Definitions------
@@ -2877,9 +2568,6 @@ def BPUmgPan(ip, apikey):
 	BP04019(ip, apikey)
 	BP04020(ip, apikey)
 	BP04021(ip, apikey)
-	BP04022(ip, apikey)
-	BP04023(ip, apikey)
-	BP04025(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -2921,9 +2609,6 @@ def BPMGPan(ip, apikey):
 	BP04019(ip, apikey)
 	BP04020(ip, apikey)
 	BP04021(ip, apikey)
-	BP04022(ip, apikey)
-	BP04023(ip, apikey)
-	BP04025(ip, apikey)
 	
 def	BPTool():
 	with open(fwinfo, 'r+') as csvfile:
@@ -2957,7 +2642,7 @@ print ""
 print "##############################################################"
 print "#### Palo Alto Best Practices Analysis Tool               ####"
 print "#### INTERNAL ONLY DO NOT DISTRIBUTE                      ####"
-print "#### Version: 0.7 ALPHA (Evergreen)                       ####"
+print "#### Version: 0.6 ALPHA (Dublin)                          ####"
 print "####                                                      ####"
 print "#### Written By: Jessica Ferguson                         ####"
 print "#### jferguson@paloaltonetworks.com                       ####"
