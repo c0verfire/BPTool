@@ -2292,6 +2292,88 @@ def BP04025(ip, apikey):
 
 	time.sleep(sleeptime)
 	
+def BP04026(ip, apikey):
+	bpnum = "BP04026"
+	title = "Require all WildFire Session Information Settings to be enabled"
+	priority = "Low"
+	print "Running Rule %s - %s" % (bpnum, title)
+	# Query for Local System Configuration
+	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting"
+	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
+	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
+	responseElement = ET.fromstring(rrule.content)
+	
+	#Parse for Local System Configuration
+	for entryElement in responseElement.findall('./result/setting/wildfire'):
+		session = entryElement.find('session-info-select')
+		if session is None:
+			status = "Pass"
+			mesg = "All Wildfire Session Information Forwarding Options enabled."
+			print (status, mesg)
+		for settingElement in entryElement.findall('session-info-select'):
+			srcip = settingElement.find('exclude-src-ip')
+			srcport = settingElement.find('exclude-src-port')
+			dstip = settingElement.find('exclude-dest-ip')
+			dstport = settingElement.find('exclude-dest-port')
+			vsysid = settingElement.find('exclude-vsys-id')
+			appid = settingElement.find('exclude-app-name')
+			userid = settingElement.find('exclude-username')
+			url = settingElement.find('exclude-url')
+			file = settingElement.find('exclude-filename')
+			emsndr = settingElement.find('exclude-email-sender')
+			emrcpt = settingElement.find('exclude-email-recipient')
+			emsbjt = settingElement.find('exclude-email-subject')
+			if not srcip is None and srcip.text == 'yes':
+				status = "Fail"
+				mesg = "Source IP Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not srcport is None and srcport.text == 'yes':
+				status = "Fail"
+				mesg = "Source Port Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not dstip is None and dstip.text == 'yes':
+				status = "Fail"
+				mesg = "Destination IP Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not dstport is None and dstport.text == 'yes':
+				status = "Fail"
+				mesg = "Destination Port Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not vsysid is None and vsysid.text == 'yes':
+				status = "Fail"
+				mesg = "VSYS Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not appid is None and appid.text == 'yes':
+				status = "Fail"
+				mesg = "Application ID Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not userid is None and userid.text == 'yes':
+				status = "Fail"
+				mesg = "User ID Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not url is None and url.text == 'yes':
+				status = "Fail"
+				mesg = "URL Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not file is None and file.text == 'yes':
+				status = "Fail"
+				mesg = "File Type Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not emsndr  is None and emsndr.text == 'yes':
+				status = "Fail"
+				mesg = "Email Sender Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not emrcpt  is None and emrcpt.text == 'yes':
+				status = "Fail"
+				mesg = "Email Recipient Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+			if not emsbjt  is None and emsbjt.text == 'yes':
+				status = "Fail"
+				mesg = "Email Subject Session Information Not sent to Wildfire"
+				ws.append([ip, bpnum, title, priority, status, mesg])
+
+	time.sleep(sleeptime)
+	
 #-------Rule Definitions------
 #----Rule 08000 - 9999: Panorama Platform Specific Rules
 def BP08000(ip, apikey):
@@ -2880,6 +2962,7 @@ def BPUmgPan(ip, apikey):
 	BP04022(ip, apikey)
 	BP04023(ip, apikey)
 	BP04025(ip, apikey)
+	BP04026(ip, apikey)
 
 def BPMGPan(ip, apikey):
 	BP01000(ip, apikey)
@@ -2924,6 +3007,7 @@ def BPMGPan(ip, apikey):
 	BP04022(ip, apikey)
 	BP04023(ip, apikey)
 	BP04025(ip, apikey)
+	BP04026(ip, apikey)
 	
 def	BPTool():
 	with open(fwinfo, 'r+') as csvfile:
