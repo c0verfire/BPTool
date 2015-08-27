@@ -103,7 +103,7 @@ def BP01002(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/users/entry"):
 		username = entryElement.attrib['name']
 		for rolebasedElement in entryElement.findall('permissions/role-based'):
@@ -162,7 +162,7 @@ def BP01004(ip, apikey):
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/authentication-profile/entry"):
 		authprof = entryElement.attrib['name']
 		for methodElement in entryElement.findall('method'):
@@ -178,7 +178,7 @@ def BP01004(ip, apikey):
 						mesg = a + ' is configured correctly'
 						ws.append([ip, bpnum, title, priority, status, mesg])
 
-						responseElement2 = ET.fromstring(rrule2.text)
+						responseElement2 = ET.fromstring(rrule2.content)
 						usrgrp = {}
 						for userElement in responseElement2.findall("./result/users/entry"):
 							username = userElement.attrib['name']
@@ -278,7 +278,7 @@ def BP01008(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for srvElement in responseElement.findall("./result/system/dns-setting/servers"):
 		PrimarySrvElement = srvElement.find('primary')
 		SecondarySrvElement = srvElement.find('secondary')
@@ -306,7 +306,7 @@ def BP01009(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for psrvElement in responseElement.findall("./result/system/ntp-servers/primary-ntp-server"):
 		PrimarySrvElement = psrvElement.find('ntp-server-address')
 		for noneElement in psrvElement.findall('authentication-type/none'):
@@ -350,7 +350,7 @@ def BP01010(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for srvElement in responseElement.findall("./result/system/service"):
 		ssh = srvElement.find('disable-ssh')
 		telnet = srvElement.find('disable-telnet')
@@ -496,7 +496,7 @@ def BP01011(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/system"):
 		entry = entryElement.find('permitted-ip')
 		if entry is None:
@@ -526,7 +526,7 @@ def BP01012(ip, apikey):
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	rresp = ET.fromstring(rrule.content)
 		
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/users/entry'):
 		username = entryElement.attrib['name']
 		passprofile = entryElement.find('password-profile')
@@ -549,7 +549,7 @@ def BP01013(ip, apikey):
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	rresp = ET.fromstring(rrule.content)
 		
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/setting/management'):
 		csvExport = entryElement.find('max-rows-in-csv-export')
 		pdfReport = entryElement.find('max-rows-in-pdf-report')
@@ -591,7 +591,7 @@ def BP01015(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result"):
 		passcomp = entryElement.find('password-complexity')
 		if passcomp is None:
@@ -802,12 +802,12 @@ def BP01016(ip, apikey):
 	xpath = "<request><license><info></info></license></request>"
 	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	# Query for System Info
 	xpath2 = "<show><system><info></info></system></show>"
 	rulequery2 = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
-	responseElement2 = ET.fromstring(rrule2.text)
+	responseElement2 = ET.fromstring(rrule2.content)
 	
 	for appElement in responseElement2.findall("./result/system"):
 		appversion = appElement.find('app-version')
@@ -931,7 +931,7 @@ def BP01017(ip, apikey):
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 		
 	for entryElement in responseElement.findall("./result/system/update-schedule"):
 		thrupdate = entryElement.find('threats')
@@ -1023,7 +1023,7 @@ def BP01018(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/users/entry"):
 		username = entryElement.attrib['name']
 		phashElement = entryElement.find('phash')
@@ -1047,7 +1047,7 @@ def BP04000(ip, apikey):
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/vsys/entry"):
 		vsys = entryElement.attrib['name']
 		for secruleElement in entryElement.findall('rulebase/security/rules/entry'):
@@ -1069,10 +1069,10 @@ def BP04001(ip, apikey):
 	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/system"):
 		version = entryElement.find('sw-version')
-		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.4" or version.text == "6.1.5":
+		if version.text == "5.0.14" or version.text == "5.0.15" or version.text == "5.0.16" or version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.4" or version.text == "6.1.5" or version.text == "6.1.6":
 			status = "Pass"
 			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
@@ -1097,7 +1097,7 @@ def BP04002(ip, apikey):
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
 		
-	responseElement = ET.fromstring(rrule.text) 
+	responseElement = ET.fromstring(rrule.content) 
 	for entryElement in responseElement.findall("./result/system"):
 		sysauth = entryElement.find('authentication-profile')
 		sysauthprof = []
@@ -1111,7 +1111,7 @@ def BP04002(ip, apikey):
 			mesg = "Authentication Profile %s is configured" % sysauth.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
 		
-		responseElement2 = ET.fromstring(rrule2.text)
+		responseElement2 = ET.fromstring(rrule2.content)
 		for authprofElement in responseElement2.findall("./result/shared/authentication-profile"):
 			for entryElement in authprofElement.findall('entry'):
 				entryName = entryElement.attrib['name']
@@ -1139,7 +1139,7 @@ def BP04003(ip, apikey):
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/vsys/entry'):
 		vsys = entryElement.attrib['name']
 		## Check VSYS Rulebase for Invalid Mask in rule
@@ -1174,7 +1174,7 @@ def BP04003(ip, apikey):
 				ws.append([ip, bpnum, title, priority, status, mesg])
 			
 	
-	responseElement2 = ET.fromstring(rrule2.text)
+	responseElement2 = ET.fromstring(rrule2.content)
 	for entryElement in responseElement2.findall('./result/shared'):
 		## Check Shared Address Objects for Invalid Mask							
 		for srdaddrElement in entryElement.findall('address/entry'):
@@ -1199,7 +1199,7 @@ def BP04004(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/shared'):
 		syslog = entryElement.find('log-settings/syslog')
 		if syslog is None:
@@ -1234,7 +1234,7 @@ def BP04005(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/shared'):
 		snmpTrap = entryElement.find('log-settings/snmptrap')
 		if snmpTrap is None:
@@ -1269,7 +1269,7 @@ def BP04006(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/shared'):
 		nfProfile = entryElement.find('server-profile/netflow')
 		if nfProfile is None:
@@ -1306,7 +1306,7 @@ def BP04007(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/interface/ethernet/entry'):
 		intfName = entryElement.attrib['name']
 		nfprof = entryElement.find('layer3/netflow-profile')
@@ -1327,7 +1327,7 @@ def BP04008(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/shared'):
 		email = entryElement.find('log-settings/email/')
 		if email is None:
@@ -1357,7 +1357,7 @@ def BP04009(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/shared'):
 		system = entryElement.find('log-settings/system/')
 		informational = entryElement.find('log-settings/system/informational')
@@ -1504,7 +1504,7 @@ def BP04010(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/shared'):
 		config = entryElement.find('log-settings/config/')
 		if config is None:
@@ -1543,7 +1543,7 @@ def BP04011(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/setting/management"):
 		loghighdp = entryElement.find('enable-log-high-dp-load')
 		if loghighdp is None:
@@ -1575,7 +1575,7 @@ def BP04012(ip, apikey):
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/interface-management-profile/entry"):
 		profile = entryElement.attrib['name']
 		ssh = entryElement.find('ssh')
@@ -1604,7 +1604,7 @@ def BP04012(ip, apikey):
 				mesg = a + ' is configured correctly'
 				ws.append([ip, bpnum, title, priority, status, mesg])
 
-		responseElement2 = ET.fromstring(rrule2.text)
+		responseElement2 = ET.fromstring(rrule2.content)
 		for intfElement in responseElement2.findall("./result/ethernet/entry"):
 			intfgrp = {}
 			interface = intfElement.attrib['name']
@@ -1637,7 +1637,7 @@ def BP04013(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/interface-management-profile/entry"):
 		profile = entryElement.attrib['name']
 		permip = entryElement.find('permitted-ip')
@@ -1668,7 +1668,7 @@ def BP04014(ip, apikey):
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	rresp = ET.fromstring(rrule.content)
 		
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/group'):
 		configSync = entryElement.find('running-sync')
 		if configSync is None:
@@ -1694,7 +1694,7 @@ def BP04015(ip, apikey):
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	rresp = ET.fromstring(rrule.content)
 		
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/group'):
 		linkMonitor = entryElement.find('link-monitoring/enabled')
 		pathMonitor = entryElement.find('path-monitoring/enabled')
@@ -1729,7 +1729,7 @@ def BP04016(ip, apikey):
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	rresp = ET.fromstring(rrule.content)
 		
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/group'):
 		localLinkState = entryElement.find('local-info/active-passive/passive-link-state')
 		localPreempt = entryElement.find('local-info/preemptive')
@@ -1756,7 +1756,7 @@ def BP04017(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/vsys/entry"):
 		vsys = entryElement.attrib['name']
 		uida = entryElement.find('user-id-agent')
@@ -1836,7 +1836,7 @@ def BP04018(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/vsys/entry"):
 		vsys = entryElement.attrib['name']
 		for probeElement in entryElement.findall('user-id-collector/setting'):
@@ -1857,12 +1857,12 @@ def BP04019(ip, apikey):
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/network"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	# Query for Interface Information
 	xpath2 = "/config/devices/entry[@name='localhost.localdomain']/vsys"
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
-	responseElement2 = ET.fromstring(rrule2.text)
+	responseElement2 = ET.fromstring(rrule2.content)
 	
 	# Pull Management Profiles and Associated Interfaces
 	for entryElement in responseElement.findall("./result/network"):
@@ -1918,7 +1918,7 @@ def BP04020(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/vsys/entry"):
 		vsys = entryElement.attrib['name']
 		uida = entryElement.find('user-id-agent')
@@ -1958,12 +1958,12 @@ def BP04021(ip, apikey):
 	xpath = '/config/shared'
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	# Query for Panorama Configuration
 	xpath2 = '/config/panorama'
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
-	responseElement2 = ET.fromstring(rrule2.text)
+	responseElement2 = ET.fromstring(rrule2.content)
 	
 	#Parse for Local System Configuration
 	for entryElement in responseElement.findall('./result/shared/log-settings'):
@@ -2019,7 +2019,7 @@ def BP04022(ip, apikey):
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/setting"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 		
 	#Parse for Local System Configuration
 	for entryElement in responseElement.findall('./result/setting'):
@@ -2170,12 +2170,12 @@ def BP04023(ip, apikey):
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	# Query for Panorama Configuration
 	xpath2 = "/config/panorama"
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
-	responseElement2 = ET.fromstring(rrule2.text)
+	responseElement2 = ET.fromstring(rrule2.content)
 	
 	#Parse for Local System Configuration
 	for entryElement in responseElement.findall('./result/vsys/entry'):
@@ -2269,7 +2269,7 @@ def BP04025(ip, apikey):
 	xpath = "/config/devices/entry[@name='localhost.localdomain']/vsys"
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	
 	#Parse for Local System Configuration
 	for entryElement in responseElement.findall('./result/vsys/entry'):
@@ -2309,7 +2309,7 @@ def BP04026(ip, apikey):
 		if session is None:
 			status = "Pass"
 			mesg = "All Wildfire Session Information Forwarding Options enabled."
-			print (status, mesg)
+			ws.append([ip, bpnum, title, priority, status, mesg])
 		for settingElement in entryElement.findall('session-info-select'):
 			srcip = settingElement.find('exclude-src-ip')
 			srcport = settingElement.find('exclude-src-port')
@@ -2386,10 +2386,10 @@ def BP08000(ip, apikey):
 	rulequery = {'type': 'op', 'action': 'get', 'key': apikey, 'cmd': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 	
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall("./result/system"):
 		version = entryElement.find('sw-version')
-		if version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.4" or version.text == "6.1.5":
+		if version.text == "5.0.14" or version.text == "5.0.15" or version.text == "5.0.16" or version.text == "6.0.8" or version.text == "6.0.9" or version.text == "6.0.10" or version.text == "6.1.4" or version.text == "6.1.5" or version.text == "6.1.6":
 			status = "Pass"
 			mesg = "Current Version: %s - Firewall is running an eTAC Recommended Version of Code" % version.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
@@ -2414,7 +2414,7 @@ def BP08001(ip, apikey):
 	rulequery2 = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath2}
 	rrule2 = requests.get('https://' + ip + '/api', params = rulequery2, verify=False)
 		
-	responseElement = ET.fromstring(rrule.text) 
+	responseElement = ET.fromstring(rrule.content) 
 	for entryElement in responseElement.findall("./result/system"):
 		sysauth = entryElement.find('authentication-profile')
 		sysauthprof = []
@@ -2428,7 +2428,7 @@ def BP08001(ip, apikey):
 			mesg = "Authentication Profile %s is configured" % sysauth.text
 			ws.append([ip, bpnum, title, priority, status, mesg])
 		
-		responseElement2 = ET.fromstring(rrule2.text)
+		responseElement2 = ET.fromstring(rrule2.content)
 		for authprofElement in responseElement2.findall("./result/panorama/authentication-profile"):
 			for entryElement in authprofElement.findall('entry'):
 				entryName = entryElement.attrib['name']
@@ -2454,7 +2454,7 @@ def BP08002(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/panorama'):
 		syslog = entryElement.find('log-settings/syslog')
 		if syslog is None:
@@ -2489,7 +2489,7 @@ def BP08003(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/panorama'):
 		snmpTrap = entryElement.find('log-settings/snmptrap')
 		if snmpTrap is None:
@@ -2524,7 +2524,7 @@ def BP08004(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/panorama'):
 		email = entryElement.find('log-settings/email/')
 		if email is None:
@@ -2554,7 +2554,7 @@ def BP08005(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/panorama'):
 		system = entryElement.find('log-settings/system/')
 		informational = entryElement.find('log-settings/system/informational')
@@ -2686,7 +2686,7 @@ def BP08006(ip, apikey):
 	rulequery = {'type': 'config', 'action': 'get', 'key': apikey, 'xpath': xpath}
 	rrule = requests.get('https://' + ip + '/api', params = rulequery, verify=False)
 
-	responseElement = ET.fromstring(rrule.text)
+	responseElement = ET.fromstring(rrule.content)
 	for entryElement in responseElement.findall('./result/panorama'):
 		config = entryElement.find('log-settings/config/')
 		if config is None:
@@ -3014,23 +3014,46 @@ def	BPTool():
 		reader = csv.DictReader(csvfile)
 		for row in reader:
 			ip = row["ip_address"]
-			keygen = {'type': 'keygen', 'user': row["username"], 'password': row["password"]}
-			rkey = requests.post('https://' + row["ip_address"] + '/api', params=keygen, verify=False)
-			rresp = ET.fromstring(rkey.content)
-			apikeysearch = rresp.find('result/key')
-			apikey = apikeysearch.text
-			print "Generating API Key for %s" % ip
+			try:
+				keygen = {'type': 'keygen', 'user': row["username"], 'password': row["password"]}
+				rkey = requests.post('https://' + row["ip_address"] + '/api', params=keygen, verify=False)
+				rresp = ET.fromstring(rkey.content)
+				apikeysearch = rresp.find('result/key')
+				if apikeysearch is None:
+					status = "Fail"
+					mesg = "API Credentials Are invalid for Host %s" % ip
+					ws.append([ip, status, mesg])
+					continue
+				else:
+					print "Generating API Key for %s" % ip
+					apikey = apikeysearch.text
+				
+				
+				
+				
+				#  lookup device type and invoke aggregating function
+				devicetype = row["device_type"]
+				if devicetype == "Panorama":
+					BPPanorama(ip, apikey)
+				elif devicetype == "Managed-PAN":
+					BPMGPan(ip, apikey)
+				elif devicetype == "Unmanaged-PAN":
+					BPUmgPan(ip, apikey)
+				else:
+					print "Device Type Not Set. Should be Panorama, Managed-PAN, or Unmanaged-PAN"
+			
+			except IOError as e:
+				status = "Fail"
+				mesg = "Host %s Is Unreachable, Please Check Network Connectivity" % ip
+				ws.append([ip, '', '', status, mesg])
+			
+			
+			
+			
+			
 					
-			#lookup device type and invoke aggregating function
-			devicetype = row["device_type"]
-			if devicetype == "Panorama":
-				BPPanorama(ip, apikey)
-			elif devicetype == "Managed-PAN":
-				BPMGPan(ip, apikey)
-			elif devicetype == "Unmanaged-PAN":
-				BPUmgPan(ip, apikey)
-			else:
-				print "Device Type Not Set. Should be Panorama, Managed-PAN, or Unmanaged-PAN"
+			
+			
 				
 
 	
