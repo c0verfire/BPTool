@@ -1213,15 +1213,10 @@ def BP04004(ip, apikey):
 					server = srvElement.attrib['name']
 					facility = srvElement.find('facility')
 					ipaddr = srvElement.find('server')
-					if facility.text == 'LOG_USER':
-						status = "Pass"
-						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-					elif facility.text != 'LOG_USER':
-						status = "Fail"
-						mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
-						ws.append([ip, bpnum, title, priority, status, mesg])
-	
+					status = "Pass"
+					mesg = "SYSLOG Server %s is configured for IP %s using facility %s" % (server, ipaddr.text, facility.text)
+					ws.append([ip, bpnum, title, priority, status, mesg])
+						
 	time.sleep(sleeptime)
 	
 def BP04005(ip, apikey):
@@ -1809,9 +1804,10 @@ def BP04017(ip, apikey):
 					ws.append([ip, bpnum, title, priority, status, mesg])
 			for wmiElement in entryElement.findall('user-id-collector/setting'):
 				wmiAccount = wmiElement.find('wmi-account')
-				status = "Informational"
-				mesg = "WMI Service Account in Use is %s" % wmiAccount.text
-				ws.append([ip, bpnum, title, priority, status, mesg])
+				if not wmiAccount is None:
+					status = "Informational"
+					mesg = "WMI Service Account in Use is %s" % wmiAccount.text
+					ws.append([ip, bpnum, title, priority, status, mesg])
 		if tsagent:
 			status = "Pass"
 			mesg = "Terminal Server Agent configured"
@@ -2001,11 +1997,11 @@ def BP04021(ip, apikey):
 				defprof.append(name)
 			if 'default' not in defprof:
 				status = "Fail"
-				mesg = "Default Log Forwarding Profile is Not pushed via Panorama Config."
+				mesg = "Default Log Forwarding Profile is Not pushed via Panorama Config for vsys '%s'." % vsys
 				ws.append([ip, bpnum, title, priority, status, mesg])
 			else:
 				status = "Pass"
-				mesg = "Default Log Forwarding Profile is pushed via Panorama Config."
+				mesg = "Default Log Forwarding Profile is pushed via Panorama Config for vsys '%s'." % vsys
 				ws.append([ip, bpnum, title, priority, status, mesg])
 
 	time.sleep(sleeptime)
@@ -2283,11 +2279,11 @@ def BP04025(ip, apikey):
 			fwddecrypt = settingElement.find('ssl-decrypt/allow-forward-decrypted-content')
 			if fwddecrypt is None or fwddecrypt.text == 'no':
 				status = "Fail"
-				mesg = "Forwarding of SSL Decrypted Content is Disabled"
+				mesg = "Forwarding of SSL Decrypted Content is Disabled for vsys '%s'" % vsys
 				ws.append([ip, bpnum, title, priority, status, mesg])
 			elif fwddecrypt.text == 'yes':
 				status = "Pass"
-				mesg = "Forwarding of SSL Decrypted Content is Enabled."
+				mesg = "Forwarding of SSL Decrypted Content is Enabled for vsys '%s'" % vsys
 				ws.append([ip, bpnum, title, priority, status, mesg])
 
 	time.sleep(sleeptime)
@@ -3022,7 +3018,7 @@ def	BPTool():
 				if apikeysearch is None:
 					status = "Fail"
 					mesg = "API Credentials Are invalid for Host %s" % ip
-					ws.append([ip, status, mesg])
+					ws.append([ip, '', '', status, '', mesg])
 					continue
 				else:
 					print "Generating API Key for %s" % ip
@@ -3045,7 +3041,7 @@ def	BPTool():
 			except IOError as e:
 				status = "Fail"
 				mesg = "Host %s Is Unreachable, Please Check Network Connectivity" % ip
-				ws.append([ip, '', '', status, mesg])
+				ws.append([ip, '', '', status, '', mesg])
 			
 			
 			
